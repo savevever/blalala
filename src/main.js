@@ -10,6 +10,7 @@ import headerCompornet from '../src/components/Header-component.vue';
 import CategoryComponent from './components/homepage/Category-component.vue';
 import footerComponent from '../src/components/Footer-component.vue';
 import JwPagination from 'jw-vue-pagination';
+
 library.add(fas, faGoogle);
 const app = createApp(App).use(router);
 // app.use(router);

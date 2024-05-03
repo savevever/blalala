@@ -1,20 +1,14 @@
 <template>
-  <div class="container">
-    <headerCompornet></headerCompornet>
-    <!-- <homepage></homepage> -->
-    <!-- <footerComponent></footerComponent> -->
-  </div>
-
+  <BarChart />
 </template>
+
 <script>
-// import homepage from './page/homepage.vue';
+import BarChart from './page/BarChart.vue'
 
 export default {
-  name: "App",
-  components: {
-    // homepage
-  },
-};
+  name: 'App',
+  components: { BarChart }
+}
 </script>
 <style>
 body {

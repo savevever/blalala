@@ -48,17 +48,17 @@ export default {
 <style>
 .container {
     display: flex;
-    width: 100vw;
+    width: 1300px;
     flex-direction: column;
     align-items: center;
 }
 
 #storeContainer {
-    width: 1300px;
-    height: 164px;
+    width: 1285px;
+    height: 114px;
     border-radius: 35px;
     background: #FFF;
-    margin: 0 0 20px 0;
+    margin: 20px 0 20px 0;
     display: flex;
     padding: 10px;
 }
@@ -66,7 +66,7 @@ export default {
 #storeRight {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    align-items: center;
+    align-items: flex-start;
 }
 
 #storeLeft {
@@ -77,14 +77,14 @@ export default {
 }
 
 #storeRight p {
-    font-size: 20px;
+    font-size: 18px;
 }
 
 #storeLeftIMG img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50px;
-    margin-right: 20px;
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    margin-right: 15px;
 }
 
 #line {
@@ -101,7 +101,7 @@ export default {
 #storeLeftTXT {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.3rem; 
 }
 
 #storeLeftTXT button {
@@ -109,30 +109,35 @@ export default {
     align-items: center;
     justify-content: center;
 }
+#storeLeftTXT p{
+   margin: 0;
+}
 
 #storeLeftButton {
     display: flex;
-    gap: 10px;
+    gap: 0.5rem;
 }
 
-#storeLeftButton button {
-    padding: 3px;
-}
 
 #storeLeftButton button:first-child {
     background-color: #73FF67;
+    border: 0.5px solid #398b32;
 }
 
 #storeLeftButton button:nth-child(2) {
     background-color: #67F6FF;
+    border: 0.5px solid #33898f;
 }
 
 #storeLeftButton button:nth-child(3) {
     background-color: #FF9E67;
+    border: 0.5px solid #7e492a;
+    width: 80px;
 }
 
 .font-awesome {
-    width: 15px;
-    height: 20px;
+    width: 13px;
+    height: 18px;
+    margin-right: 5px;
 }
 </style>

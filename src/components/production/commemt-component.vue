@@ -2,10 +2,10 @@
     <div id="container">
         <div id="comment-container">
             <h1>เเสดงความคิดเห็น</h1>
-            <div id="comment" v-for="(comment, index) in comments" :key="index">
+            <div class="comment" v-for="(comment, index) in comments" :key="index">
                 <img src="../../assets/1.png">
-                <div id="comment-right">
-                    <h2>{{ comment.name }}</h2>
+                <div class="comment-right">
+                    <h3>{{ comment.name }}</h3>
                     <p id="date">{{ comment.date }}</p>
                     <p id="comment-text">{{ comment.commentText }}</p>
                 </div>
@@ -48,42 +48,46 @@ export default {
 }
 
 #comment-container {
-
-
-    width: 1300px;
+    width: 1200px;
     /* margin-right: 60px; */
     background-color: rgb(255, 255, 255);
     margin-bottom: 30px;
-    padding: 20px 40px 20px 40px;
+    padding: 20px 50px 20px 50px;
 }
 
-#comment {
+.comment {
     background-color: rgb(234, 240, 238);
     display: flex;
-    width: 1400px;
+    width: 100%;
     height: 120px;
     margin-top: 10px;
     align-items: center;
 }
 
-#comment img {
-    height: 70px;
-    width: 70px;
+.comment img {
+    height: 65px;
+    width: 65px;
     border-radius: 40px;
     margin: 0 20px 0 20px;
 }
 
-#comment-right {
+.comment-right {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    /* gap: 0.5rem; */
 }
-
+.comment-right p {
+    margin: 0;
+}
+.comment-right h3 {
+    margin: 0;
+}
 #comment-text {
     font-size: 16px;
 }
 
 #date {
     font-size: 12px;
+    color: rgb(87, 86, 86);
 }
 </style>

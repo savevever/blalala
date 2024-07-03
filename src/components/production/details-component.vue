@@ -33,7 +33,7 @@
 }
 
 #detail-container {
-    width: 1300px;
+    width: 1200px;
     height: 500px;
     background-color: rgb(255, 255, 255);
     /* margin-right: 60px; */

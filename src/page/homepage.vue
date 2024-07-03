@@ -1,8 +1,11 @@
 <template>
     <div class="container">
-        <CategoryComponent></CategoryComponent>
-        <productsrecommend></productsrecommend>
-        <footerComponent></footerComponent>
+        <div class="item">
+            <CategoryComponent></CategoryComponent>
+            <productsrecommend></productsrecommend>
+            <footerComponent></footerComponent>
+        </div>
+
     </div>
 </template>
 
@@ -15,4 +18,14 @@ export default {
     },
 };
 </script>
-<style></style>
+<style scoped>
+.continaer {
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.item{
+    width: 1300px;  
+}
+</style>

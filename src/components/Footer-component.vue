@@ -29,25 +29,24 @@ export default {
 
 <style scoped>
 #container {
-  height: 200px;
+  height: 180px;
   display: flex;
   width: 100vw;
-  background-color: #f5f5f5;
+  background-color: #ebe3d5;
   flex-direction: column;
   align-items: center;
   /* padding-bottom: 40px; */
-  /* margin-top: 40px; */
+  margin-top: 70px;
 }
 
 #footer {
-  height: 180px;
+  height: 100%;
   display: flex;
-  width: 1300px;
+  width: 100%;
   flex-direction: column;
   align-items: center;
-  background-color: rgb(255, 255, 255);
-  /* gap: 5px; */
-  margin-top: 40px;
+  background-color: #ebe3d5;
+  padding-bottom: 1.2rem;
 }
 
 #footer-icon {

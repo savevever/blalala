@@ -1,231 +1,133 @@
 <template>
     <div id="container">
-
         <div id="Purchase-history-container">
-            <div id="Purchase-history-left">
-                <div class="user">
-                    <div class="user-title">
-                        <h3>การซื้อ</h3>
-                        <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
-                    </div>
-                    <p>ประวัติการซื้อ</p>
-                    <p>ตะกร้าสินค้า</p>
-                    <p>ที่อยุ่</p>
-                    <p>ตั้งค่าาการเเจ้งเตือน</p>
-                </div>
-                <div class="user">
-                    <div class="user-title">
-                        <h3>การซื้อ</h3>
-                        <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
-                    </div>
-                    <p>ประวัติการซื้อ</p>
-                    <p>ตะกร้าสินค้า</p>
-                    <p>ที่อยุ่</p>
-                    <p>ตั้งค่าาการเเจ้งเตือน</p>
-                </div>
-                <h3>ออกจากระบบ</h3>
-            </div>
+            <menuComponent></menuComponent>
             <div id="Purchase-history-right">
-
                 <h1>ตะกร้าสินค้า</h1>
                 <div id="item-container">
-                    <div v-for="(product, index) in data" :key="index" class="item">
-                        <div class="line"></div>
+                    <div v-for="(product, index) in cartItems" :key="index" class="item">
                         <div class="items">
-                            <button class="checkbox" :class="{ 'green-background': product.checkbox }"
-                                @click="checkbutton(product)"></button>
-                            <img src="../assets/1.png" alt="" style="width: 100px; height: 100px;">
+                            <input type="checkbox" v-model="product.checkbox" class="checked">
+                            <img :src="product.imageSource" alt="" style="width: 100px; height: 100px;">
                             <div class="item-1">
-                                <p>ตะกร้าจักรสานจากใบมะพร้าว</p>
+                                <p>{{ product.title }}</p>
                                 <p>ตัวเลือกสิ้นค้า:สีน้ำตาล</p>
                             </div>
                             <div class="item-2">
-                                <p>{{ product.price.toFixed(2) + ' บาท' }}</p>
                                 <div class="quantitycount">
-                                    <input type="number" v-model="product.quantity" min="1">
+                                    <input type="number" v-model="product.quantity" min="1"
+                                        @change="onQuantityChange(product.id, product.quantity)">
                                 </div>
-                                <div class="product-line-price">{{ calculateLinePrice(product).toFixed(2) + ' บาท' }}
-                                </div>
+                                <div class="product-line-price">{{ calculateLinePrice(product).toFixed(2) }} บาท</div>
                             </div>
                         </div>
                     </div>
                     <div class="item-button">
-                        <button>สั่งซื้ออีกครั้ง</button>
-                        <button @click="selectAllbutton(data)">เลือกสินค้าทั้งหมด</button>
-                        <button>ลบรายการสินค้า</button>
+                        <button @click="orderAgain">สั่งซื้ออีกครั้ง</button>
+                        <button @click="selectAllbutton(cartItems)">เลือกสินค้าทั้งหมด</button>
+                        <button @click="clearCart">ลบรายการสินค้า</button>
                     </div>
-                </div>
-
-                <div id="Purchase-history-pagination">
-                    <button @click="backPage">prev</button>
-                    <button v-for="item in Math.ceil(paginatedData / perPage)" :key="item"
-                        @click="() => goToPage(item)">
-                        {{ item }}
-                    </button>
-                    <button @click="nextPage">next</button>
                 </div>
             </div>
         </div>
     </div>
-
+    <footerComponent></footerComponent>
 </template>
+
 <script>
-import { ref, computed, reactive } from "vue";
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-
-library.add(fas);
-const products = reactive([
-    {
-        id: 1,
-        title: 'ตะกร้าจักรสานจากใบมะพร้าว',
-        description: 'ตัวเลือกสิ้นค้า:สีน้ำตาล',
-        checkbox: false,
-        price: 12.99,
-        quantity: 1,
-        image: 'https://s.cdpn.io/3/dingo-dog-bones.jpg',
-    },
-    {
-        id: 2,
-        title: 'ตะกร้าจักรสานจากใบมะพร้าว',
-        description: 'ตัวเลือกสิ้นค้า:สีน้ำตาล',
-        checkbox: false,
-        price: 45.99,
-        quantity: 1,
-        image: 'https://s.cdpn.io/3/large-NutroNaturalChoiceAdultLambMealandRiceDryDogFood.png',
-    },
-    {
-        id: 3,
-        title: 'ตะกร้าจักรสานจากใบมะพร้าว',
-        description: 'ตัวเลือกสิ้นค้า:สีน้ำตาล',
-        checkbox: false,
-        price: 46.99,
-        quantity: 1,
-        image: 'https://s.cdpn.io/3/large-NutroNaturalChoiceAdultLambMealandRiceDryDogFood.png',
-    },
-    {
-        id: 4,
-        title: 'ตะกร้าจักรสานจากใบมะพร้าว',
-        description: 'ตัวเลือกสิ้นค้า:สีน้ำตาล',
-        checkbox: false,
-        price: 17.99,
-        quantity: 1,
-        image: 'https://s.cdpn.io/3/dingo-dog-bones.jpg',
-    },
-    {
-        id: 5,
-        title: 'ตะกร้าจักรสานจากใบมะพร้าว',
-        description: 'ตัวเลือกสิ้นค้า:สีน้ำตาล',
-        checkbox: false,
-        price: 48.99,
-        quantity: 1,
-        image: 'https://s.cdpn.io/3/large-NutroNaturalChoiceAdultLambMealandRiceDryDogFood.png',
-    },
-    {
-        id: 6,
-        title: 'ตะกร้าจักรสานจากใบมะพร้าว',
-        description: 'ตัวเลือกสิ้นค้า:สีน้ำตาล',
-        checkbox: false,
-        price: 35.99,
-        quantity: 1,
-        image: 'https://s.cdpn.io/3/large-NutroNaturalChoiceAdultLambMealandRiceDryDogFood.png',
-    },
-]);
+import { mapGetters, mapActions } from 'vuex';
 export default {
-
-    setup() {
-        let page = ref(1);
-
-        const perPage = 3;
-
-        const data = computed(() => {
-            const slicedData = products.slice((page.value - 1) * perPage, page.value * perPage);
-            // console.log(slicedData); // เพิ่มบรรทัดนี้
-            return slicedData;
-        });
-        // const data = Array.from(Array(24).keys()).map((item) => {
-        //     return { index: item, value: `this_${item}` };
-        // });
-
-        const paginatedData = computed(() => {
-            const nemberpage = products.length;
-            return nemberpage;
-        }
-        );
-        // console.log(data);
-        const nextPage = () => {
-            if (page.value !== Math.ceil(products.length / perPage)) {
-                page.value += 1;
-            }
-        };
-
-        const backPage = () => {
-            if (page.value !== 1) {
-                page.value -= 1;
-            }
-        };
-
-        // const goToPage = (numPage) => {
-        //     page.value = numPage;
-        // };
-        const goToPage = (numPage) => {
-            page.value = numPage;
-        };
-
-        return { data, perPage, paginatedData, page, nextPage, backPage, goToPage };
-    },
-    components: {
-        FontAwesomeIcon,
-    }, data() {
+    data() {
         return {
-
-        };
-    }, methods: {
+            quantity: 1
+        }
+    },
+    methods: {
+        ...mapActions(['updateQuantity', 'removeFromCart', 'loadCart', 'addToCart']),
         calculateLinePrice(product) {
             return product.price * product.quantity;
         },
-        // checkbutton(product) {
-        //     product.checkbox = !product.checkbox
-        //     console.log(product)
-        // }
-        checkbutton(product) {
-            product.checkbox = !product.checkbox;
-            console.log(product);
-        }, selectAllbutton(Allbutton) {
-            Allbutton.forEach(product => {
+        onQuantityChange(productId, quantity) {
+            this.updateQuantity({ productId, quantity });
+        },
+        clearCart() {
+            const itemsToRemove = this.cartItems.filter(product => product.checkbox);
+            itemsToRemove.forEach(product => {
+                this.removeFromCart(product.id);
+            });
+        },
+        selectAllbutton(allItems) {
+            allItems.forEach(product => {
                 product.checkbox = !product.checkbox;
             });
+        },
+        orderAgain() {
+            console.log('Order again logic goes here');
+        }, addToCartClicked() {
+            const product = {
+                id: this.product.id,
+                title: this.product.title,
+                price: this.product.price,
+                quantity: this.count,
+                imageSource: this.product.imageSource,
+            };
+            this.addToCart(product);
         }
     },
-
+    computed: {
+        ...mapGetters(['cart']),
+        cartItems() {
+            console.log(this.cart);
+            return this.cart;
+        },
+        selectedItems() {
+            return this.cartItems.filter(product => product.checkbox);
+        },
+        totalPages() {
+            return Math.ceil(this.cart.length / this.itemsPerPage);
+        },
+        paginatedProducts() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.cart.slice(start, end);
+        }
+    },
+    mounted() {
+        this.loadCart();
+    }
 };
-
 </script>
+
+
 <style scoped>
+/* สไตล์ที่คุณได้ระบุไปแล้ว */
 #Purchase-history-container {
     width: 1200px;
-    height: 600px;
+    height: 680px;
+    overflow: hidden;
     background-color: rgb(255, 255, 255);
     display: flex;
 }
 
-
-
 #Purchase-history-right {
     padding: 20px;
+    width: 920px;
+    height: 690px;
+    background-color: #F4F4F5;
+    display: flex;
+    flex-direction: column;
 }
 
 .items {
     display: flex;
     gap: 10px;
-
 }
 
 .item-2 {
     display: flex;
     gap: 70px;
     margin-left: 70px;
+    align-items: center;
 }
 
 .checkbox {
@@ -234,7 +136,7 @@ export default {
 }
 
 .line {
-    width: 900px;
+    width: 100%;
     height: 2px;
     background-color: rgb(179, 172, 172);
     margin: 20px 0 10px 0;
@@ -244,6 +146,7 @@ export default {
     display: flex;
     width: 900px;
     justify-content: flex-end;
+    gap: 1rem;
 }
 
 #container {
@@ -252,28 +155,14 @@ export default {
     width: 100vw;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 30px;
 }
 
-.user-title {
+.item {
+    background-color: #ffffff;
+    width: 94%;
     display: flex;
-    gap: 20px;
-}
-
-.user {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-}
-
-#Purchase-history-left {
-    width: 250px;
-    height: 600px;
-    background-color: #D4D3D3;
-    padding: 15px 25px 15px 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
+    align-items: center;
+    padding: 1rem 1.3rem 1rem 1.3rem;
 }
 
 #item-container {
@@ -285,46 +174,32 @@ export default {
 .item-button :first-child {
     width: 122px;
     height: 41px;
-    background: #FF9C9C;
+    background: #fde0ae;
     border-width: 1px;
-    border-color: #ca7474;
+    border-color: #fcdca6;
 }
 
 .item-button :nth-child(2) {
     width: 140px;
     height: 41px;
-    background: #CEC3C3;
-    border-width: 1px;
-    border-color: #9e9292;
+    background: #ffffff;
+    border: 0.2px solid #ccc;
 }
 
 .item-button :nth-child(3) {
     width: 152px;
     height: 41px;
-    background: #CEC3C3;
-    border-width: 1px;
-    border-color: #9e9292;
-}
-
-#Purchase-history-pagination {
-    display: flex;
-    margin-top: 40px;
-    gap: 5px;
-    width: 900px;
-    justify-content: flex-end;
-}
-
-#Purchase-history-pagination button {
-    width: auto;
-    padding: 0px 10px 5px 10px;
-    height: 20px;
-
-
+    background: #ffffff;
+    border: 0.2px solid #ccc;
 }
 
 .quantitycount {
     display: flex;
+}
 
+.checked {
+    width: 30px;
+    height: 30px;
 }
 
 .quantitycount input {
@@ -332,22 +207,11 @@ export default {
     height: 30px;
     width: 55px;
     text-align: center;
-
-}
-
-.green-background {
-    background-color: green;
-    /* สีพื้นหลังที่คุณต้องการเมื่อ isActive เป็น true */
 }
 
 .quantitycount button {
     width: 30px;
     font-size: 20px;
     height: 30px;
-}
-
-.icon {
-    font-size: 30px;
-
 }
 </style>

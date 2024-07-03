@@ -1,29 +1,7 @@
 <template>
     <div id="container">
         <div id="Purchase-history-container">
-            <div id="Purchase-history-left">
-                <div class="user">
-                    <div class="user-title">
-                        <h3>การซื้อ</h3>
-                        <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
-                    </div>
-                    <p>ประวัติการซื้อ</p>
-                    <p>ตะกร้าสินค้า</p>
-                    <p>ที่อยุ่</p>
-                    <p>ตั้งค่าาการเเจ้งเตือน</p>
-                </div>
-                <div class="user">
-                    <div class="user-title">
-                        <h3>การซื้อ</h3>
-                        <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
-                    </div>
-                    <p>ประวัติการซื้อ</p>
-                    <p>ตะกร้าสินค้า</p>
-                    <p>ที่อยุ่</p>
-                    <p>ตั้งค่าาการเเจ้งเตือน</p>
-                </div>
-                <h2>ออกจากระบบ</h2>
-            </div>
+            <menuComponent></menuComponent>
             <div id="Purchase-history-right">
                 <h1>ตั้งค่าการเเจ้งเตือน</h1>
                 <div id="account-setting-items">
@@ -51,34 +29,15 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div>      
     </div>
     <footerComponent></footerComponent>
 </template>
 <script>
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
-library.add(fas);
 
 export default {
-    components: {
-        FontAwesomeIcon,
-    },
-    data() {
-        return {
-            checkbox1: false,
-            checkbox2: false,
-            checkbox3: false,
-            checkbox4: false
-        };
-    },
-    methods: {
-        checkbutton(checkboxName) {
-            this[checkboxName] = !this[checkboxName];
-        }
-    }
+
 };
 </script>
 <style scoped>
@@ -104,37 +63,7 @@ export default {
     width: 100vw;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 30px;
-}
-
-.user-title {
-    display: flex;
-    gap: 5rem;
-    align-items: center;
-}
-
-.user {
-    display: flex;
-    flex-direction: column;
-    /* gap: 0.2rem; */
-}
-
-#Purchase-history-left {
-    width: 250px;
-    height: 650px;
-    background-color: #D4D3D3;
-    padding: 15px 25px 15px 25px;
-    display: flex;
-    flex-direction: column;
-}
-
-#Purchase-history-left h2 {
-    margin-top: 4rem;
-    color: #b61f1f;
-}
-
-#Purchase-history-left p {
-    margin: 10px;
+    /* margin-bottom: 30px; */
 }
 
 #item-container {
@@ -142,7 +71,6 @@ export default {
     flex-direction: column;
     gap: 10px;
 }
-
 
 .icon {
     font-size: 30px;
@@ -170,12 +98,6 @@ export default {
     transform: rotate(45deg);
 }
 
-/* input:checked~.checkmark:after {
-    display: block;
-} */
-
-
-/* Create the checkmark/indicator (hidden when not checked) */
 .checkmark:after {
     content: "";
     position: absolute;

@@ -4,21 +4,24 @@
             <div id="ProductItem">
                 <div id="ProductItemHead">
                     <div id="ProductItemImg">
-                        <img src="../../assets/2.png" id="Image">
+                        <!-- <img :src="img" id="Image"> -->
+                        <img :src="product.imageSource" id="Image"/>
                     </div>
                     <div id="ProductItemTxt">
-                        <h2>[ซื้อ 4 แถม 2] Downy ดาวน์นี่ น้ำยาปรับผ้านุ่ม สูตรเข้มข้น ชนิดถุงเติม Concentrated Fabric
-                            Softener Refill 1.2L-1.35L x</h2>
+                        <div>
+                            <!-- <h2>{{ title }}</h2> -->
+                            <h2>{{ product.title }} </h2>
+                        </div>
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
                                 @click="toggleColor('heart')" />
-                            <p>5คนที่ถูกใจ</p>
-                            <p>108.8พันขายแล้ว</p>
+                            <p><span>5</span>คนที่ถูกใจ</p>
+                            <p><span>108.8</span>จำนวนขายแล้ว</p>
                         </div>
-                        <p class="price">฿679</p>
+                        <p class="price">฿{{ product.price }}</p>
                         <div class="option">
-                            <p>size</p>
-                            <button v-for="(button, index) in buttons" :key="index" @click="toggleColor(index)"
+                            <p>{{ option }}</p>
+                            <button v-for="(button, index) in buttons" :key="index" @click="selectedButton = index"
                                 :class="{ 'pink': selectedButton === index }">
                                 {{ button }}
                             </button>
@@ -30,7 +33,7 @@
                                 <span>{{ count }}</span>
                                 <button @click="increment">+</button>
                             </div>
-                            <p>มีสินค้าทั้งหมด:21</p>
+                            <p>มีสินค้าทั้งหมด:<span>21</span></p>
                         </div>
                     </div>
                 </div>
@@ -40,8 +43,9 @@
                     <curosurSlice></curosurSlice>
                 </div>
                 <div id="ProductItemButton">
-                    <button>เพิ่มสินค้าลงในตระกร้า</button>
-                    <button>ซื้อสินค้าเลย</button>
+                    <router-link to="/users/cart"><button @click="addToCartClicked"
+                            class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
+                    <button class="btn2">ซื้อสินค้าเลย</button>
                 </div>
             </div>
         </div>
@@ -49,32 +53,51 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
-import curosurSlice from './curosurSlice.vue'
+import curosurSlice from './curosurSlice.vue';
+import { mapGetters } from 'vuex';
 library.add(faHeart);
+
 export default {
     data() {
         return {
             isPressedHeart: false,
-            isPressedButton: false,
             count: 0,
             buttons: ['L', 'M', 'S'],
             selectedButton: null,
+            // title: '[ซื้อ 4 แถม 2] Downy ดาวน์นี่ น้ำยาปรับผ้านุ่ม สูตรเข้มข้น ชนิดถุงเติม ConcentratedFabricSoftener Refill 1.2L-1.35L x',
+            // img: "https://yuedpao.com/wp-content/uploads/2022/03/KODNUM-BLACK-scaled-jpg.webp",
+            // price: 645,
+            option: "size"
         };
+    }, computed: {
+        ...mapGetters(['selectedProduct']),
+        product() {
+            return this.selectedProduct;
+        }
     },
     components: {
         curosurSlice
     },
     methods: {
+        ...mapActions(['addToCart']),
+        addToCartClicked() {
+            const product = {
+                id: this.product.id,
+                title: this.product.title,
+                price: this.product.price,
+                quantity: this.count,
+                imageSource: this.product.imageSource,
+            };
+            this.addToCart(product);
+        },
         toggleColor(component) {
             if (component === 'heart') {
                 this.isPressedHeart = !this.isPressedHeart;
-            } else if (component === 'button') {
-                this.isPressedButton = !this.isPressedButton;
             }
         },
-
         increment() {
             this.count++;
         },
@@ -83,31 +106,38 @@ export default {
                 this.count--;
             }
         },
-        // ลบฟังก์ชัน toggleColor ที่ซ้ำ
     },
 };
 </script>
 
 <style scoped>
 #Image {
-    width: 500px;
+    width: 450px;
     height: 500px;
+    object-fit: cover;
 }
 
 #ProductItemHead {
     display: flex;
     gap: 40px;
+    /* background-color: #ffffff; */
 }
 
 #ProductItemTxt {
     width: 760px;
     height: 500px;
     padding: 25px;
-    background-color: rgb(255, 255, 255);
+    /* background-color: rgb(255, 255, 255); */
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 27px;
 
+}
+
+router-link {
+    padding: 0;
+    margin: 0;
+    border: 0;
 }
 
 .heart {
@@ -126,6 +156,7 @@ export default {
 #like {
     /* margin: 20px 0 20px 0; */
     display: flex;
+    align-items: center;
     gap: 35px;
 }
 
@@ -171,7 +202,7 @@ export default {
     display: flex;
     width: 1300px;
     flex-direction: column;
-    /* background-color: #8f8c8c; */
+    background-color: #ffffff;
 }
 
 .quantity {
@@ -186,20 +217,26 @@ export default {
 
 #quantitycount {
     display: flex;
+    align-items: center;
 }
 
 #quantitycount span {
     font-size: 22px;
     width: 55px;
+    height: 30px;
     text-align: center;
     border-top: 1px solid #8f8c8c;
     border-bottom: 1px solid #8f8c8c;
 
 }
 
+#quantitycount button {
+    height: 32px;
+}
+
 #ProductItemBottom {
     display: flex;
-    gap: 160px;
+    gap: 3.9rem;
     margin: 20px 0 20px 0;
     align-items: center;
 }
@@ -210,22 +247,24 @@ export default {
 
 }
 
-#ProductItemButton :first-child {
-    width: 200px;
-    height: 70px;
-    border-radius: 15px;
-    background: #FFD4D4;
-    font-size: 18px;
-    border: 0;
+.btn1 {
+    /* width: 200px;
+    height: 70px; */
+    background: #f5e7ce;
+    font-size: 16px;
+    border: 1px solid #ffae22;
+    padding: 1rem 2rem 1rem 2rem;
+    /* color: #8d5b04; */
+    cursor: pointer;
 }
 
-#ProductItemButton :nth-child(2) {
-    width: 200px;
-    height: 70px;
-    border-radius: 15px;
-    background: #FF9C9C;
-    font-size: 18px;
+.btn2 {
+    padding: 1rem 2rem 1rem 2rem;
+    background: #ffae22;
+    font-size: 16px;
     border: 0;
+    color: #ffffff;
+    cursor: pointer;
 }
 
 #quantitycount button {
@@ -233,4 +272,4 @@ export default {
     font-size: 20px;
 
 }
-</style>./curosurSlice.vue./curosurSlice.vue
+</style>

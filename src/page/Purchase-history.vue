@@ -2,29 +2,7 @@
     <div id="container">
 
         <div id="Purchase-history-container">
-            <div id="Purchase-history-left">
-                <div class="user">
-                    <div class="user-title">
-                        <h3>การซื้อ</h3>
-                        <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
-                    </div>
-                    <p>ประวัติการซื้อ</p>
-                    <p>ตะกร้าสินค้า</p>
-                    <p>ที่อยุ่</p>
-                    <p>ตั้งค่าาการเเจ้งเตือน</p>
-                </div>
-                <div class="user">
-                    <div class="user-title">
-                        <h3>การซื้อ</h3>
-                        <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
-                    </div>
-                    <p>ประวัติการซื้อ</p>
-                    <p>ตะกร้าสินค้า</p>
-                    <p>ที่อยุ่</p>
-                    <p>ตั้งค่าาการเเจ้งเตือน</p>
-                </div>
-                <h3>ออกจากระบบ</h3>
-            </div>
+            <menuComponent></menuComponent>
             <div id="Purchase-history-right">
                 <h1>ประวัติการซื้อ</h1>
                 <div id="item-container">
@@ -47,7 +25,6 @@
                         <div class="item-button">
                             <button>สั่งซื้ออีกครั้ง</button>
                             <button>ยกเลิกคำสั่งซื้อ</button>
-                            <button>ดูรายละเอียดสินค้า</button>
                         </div>
                     </div>
                     <div class="item">
@@ -69,51 +46,78 @@
                         <div class="item-button">
                             <button>สั่งซื้ออีกครั้ง</button>
                             <button>ยกเลิกคำสั่งซื้อ</button>
-                            <button>ดูรายละเอียดสินค้า</button>
                         </div>
 
                     </div>
                 </div>
-                <div id="Purchase-history-pagination">
-                    <button>กลับหน้าเเรก</button>
-                    <button>1</button>
-                    <button>2</button>
-                    <button>ไปหน้าสุดท้าย</button>
-                </div>
+                <paginationComponent :currentPage="currentPage" :totalPages="totalPages" @update:page="gotoPage" />
             </div>
         </div>
     </div>
-
+    <footerComponent></footerComponent>
 </template>
 <script>
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import paginationComponent from '../components/pagination-component.vue'
 
-library.add(fas);
+
 
 export default {
     components: {
-        FontAwesomeIcon,
+        paginationComponent
+    }, methods: {
+        toggleVisibility() {
+            this.isVisible = !this.isVisible;
+        },
+        toggleVisibility2() {
+            this.isVisible2 = !this.isVisible2;
+        }, gotoPage(page) {
+            this.currentPage = page;
+        }
+
+    }, data() {
+        return {
+            isVisible: false,
+            isVisible2: false,
+            products: [],
+            currentPage: 1,
+            itemsPerPage: 12,
+            totalItems: 0,
+
+        };
+    }, computed: {
+        totalPages() {
+            return Math.ceil(this.totalItems / this.itemsPerPage);
+        },
+        paginatedProducts() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.products.slice(start, end);
+        }
     },
 };
 </script>
 <style scoped>
 #Purchase-history-container {
     width: 1200px;
-    height: 600px;
+    height: 680px;
+    overflow: hidden;
     background-color: rgb(255, 255, 255);
     display: flex;
 }
 
 #Purchase-history-right {
     padding: 20px;
+    width: 920px;
+    height: 690px;
+    background-color: #F4F4F5;
+    display: flex;
+    flex-direction: column;
 }
 
 .items {
     display: flex;
     gap: 10px;
-
+    width: 100%;
 }
 
 .item-2 {
@@ -122,8 +126,14 @@ export default {
     margin-left: 70px;
 }
 
+.item {
+    width: 94%;
+    background-color: #ffffff;
+    padding: 1rem 1.3rem 1rem 1.3rem;
+}
+
 .line {
-    width: 900px;
+    width: 100%;
     height: 2px;
     background-color: rgb(179, 172, 172);
     margin: 20px 0 10px 0;
@@ -133,6 +143,7 @@ export default {
     display: flex;
     width: 900px;
     justify-content: flex-end;
+    gap: 2rem;
 }
 
 #container {
@@ -141,30 +152,14 @@ export default {
     width: 100vw;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 30px;
+    /* margin-bottom: 30px; */
 }
 
-.user-title {
-    display: flex;
-    gap: 20px;
-}
 
-.user {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-}
 
-#Purchase-history-left {
-    width: 250px;
-    height: 600px;
-    background-color: #D4D3D3;
-    padding: 15px 25px 15px 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
+.item-button{
+ width: 100%;
 }
-
 #item-container {
     display: flex;
     flex-direction: column;
@@ -174,26 +169,19 @@ export default {
 .item-button :first-child {
     width: 122px;
     height: 41px;
-    background: #FF9C9C;
-    border-width: 1px;
-    border-color: #ca7474;
+    box-shadow: none;
+    background: #fde0ae;
+    border: 0.6px solid #fcdca6;
 }
 
 .item-button :nth-child(2) {
     width: 140px;
     height: 41px;
-    background: #CEC3C3;
-    border-width: 1px;
-    border-color: #9e9292;
+    box-shadow: none;
+    background: #ffffff;
+    border: 0.2px solid #ccc;
 }
 
-.item-button :nth-child(3) {
-    width: 152px;
-    height: 41px;
-    background: #CEC3C3;
-    border-width: 1px;
-    border-color: #9e9292;
-}
 
 #Purchase-history-pagination {
     display: flex;

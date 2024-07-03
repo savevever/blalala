@@ -1,14 +1,6 @@
 <template>
-  <div id="container1">
-    <div id="map" @click="handleMapClick">
-    </div>
-    <div id="location-button">
-      <input v-model="newLon" type="text" placeholder="Enter Longitude">
-      <input v-model="newLat" type="text" placeholder="Enter Latitude">
-      <button @click="addMarker">Add Marker</button>
-      <button @click="deleteMarker">Delete Marker</button>
-      <button @click="getCurrentLocation">Get Current Location</button>
-    </div>
+  <div id="container">
+    <div id="map"></div>
   </div>
 </template>
 
@@ -17,9 +9,7 @@ export default {
   data() {
     return {
       map: null,
-      markers: [], // เพิ่ม markers เป็น array เพื่อเก็บ marker ทั้งหมด
-      newLon: 0,
-      newLat: 0,
+      markers: []
     };
   },
   mounted() {
@@ -42,76 +32,62 @@ export default {
       this.map = new window.longdo.Map({
         placeholder: document.getElementById('map')
       });
-    },
-    addMarker() {
-      if (this.map) {
-        // ลบ marker เก่าทั้งหมด
-        this.markers.forEach((marker) => {
-          this.map.Overlays.remove(marker);
-        });
 
-        const { newLon, newLat } = this;
-        const marker = new window.longdo.Marker({ lon: newLon, lat: newLat });
-        this.map.Overlays.add(marker);
+      // ตั้งค่าขอบเขตแผนที่ให้ครอบคลุมประเทศไทย
+      this.map.bound({
+        minLon: 97.345,
+        minLat: 5.625,
+        maxLon: 105.639,
+        maxLat: 20.464
+      });
 
-        // เก็บ marker ล่าสุดไว้ใน array
-        this.markers = [marker];
-      }
-    },
-    deleteMarker() {
-      if (this.map && this.markers.length > 0) {
-        // ลบ marker ทั้งหมดใน array
-        this.markers.forEach((marker) => {
-          this.map.Overlays.remove(marker);
-        });
-        // ลบทั้งหมดออกจาก array
-        this.markers = [];
-      }
+      this.getCurrentLocation();
     },
     getCurrentLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
-          this.newLon = position.coords.longitude;
-          this.newLat = position.coords.latitude;
-          this.addMarker();
+          const { longitude, latitude } = position.coords;
+          this.addMarker(longitude, latitude);
+        }, (error) => {
+          console.error(error);
+          alert('ไม่สามารถหาตำแหน่งปัจจุบันได้');
         });
       } else {
         alert('Geolocation is not supported by this browser.');
       }
     },
-    handleMapClick(event) {
+    addMarker(lon, lat) {
       if (this.map) {
         // ลบ marker เก่าทั้งหมด
         this.markers.forEach((marker) => {
           this.map.Overlays.remove(marker);
         });
 
-        const position = this.map.location(event.lng, event.lat);
-        this.newLon = position.lon;
-        this.newLat = position.lat;
-
-        const marker = new window.longdo.Marker({ lon: this.newLon, lat: this.newLat });
+        // เพิ่ม marker ที่ตำแหน่งปัจจุบัน
+        const marker = new window.longdo.Marker({ lon, lat });
         this.map.Overlays.add(marker);
 
         // เก็บ marker ล่าสุดไว้ใน array
         this.markers = [marker];
+
+        // เลื่อนไปที่ตำแหน่งปัจจุบัน
+        this.map.location({ lon, lat }, true);
       }
     }
   }
 };
 </script>
 
-<style >
-#container1 {
+
+<style scoped>
+#container {
 
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  /* justify-content: flex-start; */
-  margin-bottom: 30px;
+  flex-direction: column;
+
   margin-top:30px ;
-  width: 1200px;
-  /* background-color: #ff6565; */
+  width: 700px;
 }
 
 #location-button {
@@ -143,6 +119,7 @@ export default {
 }
 
 #map {
+  
   height: 200px;
   width: 705px;
   cursor: crosshair;

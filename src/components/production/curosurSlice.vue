@@ -1,5 +1,5 @@
 <template>
-    <div class="swiper-container">
+    <div class="swiper-container">         
         <div class="swiper-wrapper">
             <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
             <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
@@ -7,10 +7,9 @@
             <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
             <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
             <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
-
         </div>
-        <div class="swiper-button-next"></div>
         <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
     </div>
 </template>
 
@@ -49,20 +48,20 @@ export default {
 
 <style>
 .swiper-container {
-    width: 500px;
+    width: 450px;
     height: 100px;
     overflow: hidden;
 }
 
 .swiper-wrapper img {
-    height: 150px;
-    width: 160px;
+    height: 90px;
+    width: 130px;
 }
 
 .swiper-slide {
     text-align: center;
     font-size: 18px;
-    background-color: #3d4380;
+    background-color: #ffffff;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -70,15 +69,18 @@ export default {
 }
 
 .swiper-button-next {
-    top: 105%;
-    right: 62%;
-    color: aquamarine;
-
+    position: absolute;
+    top: 110%;
+    right: 60.5%;
+    color: rgb(255, 255, 255);
+    border: 2px solid #000000;
 }
 
 .swiper-button-prev {
-    top: 105%;
-    left: 9%;
-    color: aquamarine;
+    position: absolute;
+    top: 110%;
+    left: 16.8%;
+    color: rgb(255, 255, 255);
+    border: 2px solid #000000;
 }
 </style>

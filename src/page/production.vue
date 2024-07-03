@@ -1,5 +1,5 @@
 <template>
-    <div id="container">
+    <div class="container">
         <CategoryComponent></CategoryComponent>
         <ProductItem></ProductItem>
         <store></store>
@@ -24,5 +24,10 @@ export default {
 };
 </script>
 <style scoped>
-#container {}
+.container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100vw;
+}
 </style>

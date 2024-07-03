@@ -75,7 +75,7 @@ export default {
 .container {
   display: flex;
   width: 100vw;
-  background-color: #f5f5f5;
+  background-color: #f3efe8;
   align-items: center;
   justify-content: center;
 }

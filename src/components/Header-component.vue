@@ -1,152 +1,206 @@
 <template>
-  <div id="container">
-    <nav>
-      <div class="routers">
-        <router-link to="/" class="router-link"><span>หน้าหลัก</span></router-link>
-        <router-link to="/startSell" class="router-link"><span>เริ่มขายของ</span></router-link>
-        <router-link to="/Setting" class="router-link"><span>การตั้งค่า</span></router-link>
-        <router-link to="/login" class="router-link"><span>เข้าสู่ระบบ</span></router-link>
-        <router-link to="/register" class="router-link"><span>สมัครลงทะเบียน</span></router-link>
-      </div>
+    <div class="head">
+        <div class="navbar">
+            <div class="logo">
+                <a href="/">Chumchon OTOP</a>
+            </div>
+            <nav>
+                <ul id="MenuItems">
+                    <li><router-link to="/">Home</router-link></li>
+                    <li><router-link to="/users/StartSelling">Start Selling</router-link></li>
+                    <li><router-link to="/users/Center">Center</router-link></li>
+                    <li v-if="!isLoggedIn"><router-link to="/users/login">Login</router-link></li>
+                    <!-- <li v-else @click="logout"><router-link>Logout</router-link></li> -->
+                    <li>
+                        <div class="profile"><router-link to="/users/setting"><font-awesome-icon
+                                    :icon="['fas', 'circle-user']" id="icon"
+                                    @click="toggleMenu"></font-awesome-icon></router-link>
+                            <p v-if="isLoggedIn"><router-link to="/users/setting">{{ userName }}</router-link></p>
+                        </div>
 
-    </nav>
-    <div id="header">
-      <div id="menu">
-        <router-link to="/" class="router-link">
-          <h1>balala Shop</h1>
-        </router-link>
-      </div>
-      <div id="serach">
-        <input type="text" /> <!-- ช่องใส่ข้อความ -->
-        <div class="Searchbutton">
-          <font-awesome-icon :icon="['fas', 'magnifying-glass']" id="SearchIcon" /><!-- ไอคอน  -->
+                    </li>
+                </ul>
+                <div class="search-box">
+                    <i class="fa fa-search"></i>
+                    <input type="search" class="search" placeholder="Search..." />
+                </div>
+                <div class="icon-basket">
+                    <router-link to="/users/cart">
+                        <font-awesome-icon :icon="['fas', 'cart-shopping']" id="icon-basket"></font-awesome-icon>
+                    </router-link>
+                </div>
+            </nav>
         </div>
-        <font-awesome-icon :icon="['fas', 'cart-shopping']" id="cartIcon" />
-      </div>
-    </div>
-    <router-view />
-  </div>
 
+    </div>
 </template>
 
 <script>
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSearch, faCartShopping } from "@fortawesome/free-solid-svg-icons";
-library.add(faSearch, faCartShopping);
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSearch, faCartShopping, faCircleUser } from '@fortawesome/free-solid-svg-icons'
+
+library.add(faSearch, faCartShopping, faCircleUser)
 
 export default {
-  components: {
-    FontAwesomeIcon,
-  },
-
+    data() {
+        return {
+            isMenuOpen: false,
+            user: 'User Name',
+            isLoggedIn: false
+        };
+    }, created() {
+        this.checkLoginStatus();
+        this.getUserName();
+    }, components: {
+        FontAwesomeIcon
+    },
+    methods: {
+        toggleMenu() {
+            this.isMenuOpen = !this.isMenuOpen;
+        },
+        checkLoginStatus() {
+            this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        }, getUserName() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                this.userName = user.name;
+            }
+        }
+    }
 };
 </script>
 
 <style scoped>
-#header {
-  background-image: linear-gradient(#ee4d2d, #ff7337);
-  width: 100vw;
-  height: 50px;
-  display: flex;
-  /* flex-direction: column; */
-  align-items: center;
-  justify-content: flex-end;
-  padding: 23px 30rem 23px 60px;
-  /* top right botton left */
+/* Add your styles here */
+.head {
+    height: 40%;
+    width: 100vw;
+    background: #ebe3d5;
+    background-position: top center;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 70px;
 }
 
-#menu {
-  display: flex;
-  overflow: hidden;
+.profile {
+    display: flex;
+    align-items: center;
+}
+
+.profile p {
+    font-size: 20px;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 50px;
+}
+
+.logo a {
+    text-decoration: none;
+    color: #201658;
+    font-size: 25px;
+    font-family: 'Poetsen One', sans-serif;
+}
+
+.logo a:hover {
+    text-decoration: underline;
+}
+
+#MenuItems {
+    display: flex;
+    align-items: center;
 }
 
 nav {
-  background-color: #ee4d2d;
-  width: 100vw;
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 1rem;
-  padding-right: 26rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
 }
 
-.routers {
-  display: flex;
-  /* margin-right: 12rem; */
-  gap: 3rem;
+nav ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
 }
 
-.router-link {
-  color: #ffffff;
-  text-decoration: none;
+nav ul li {
+    margin-right: 30px;
 }
 
-router-view {
-  width: 1300px;
+nav ul li a,
+nav ul li button {
+    text-decoration: none;
+    font-size: 18px;
+    color: black;
+    font-family: 'Nunito', sans-serif;
 }
 
-.Searchbutton {
-  width: 38px;
-  height: 37px;
-  background-color: #000000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+nav ul li button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
 }
 
-#SearchIcon {
-  color: #ffffff;
+nav ul li a:hover,
+nav ul li button:hover {
+    color: #9b1111;
 }
 
-#menu router-view {
-  width: 144px;
-  height: 45px;
-  color: #fff;
-  font-family: Inter;
-  font-size: 22px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: normal;
-  cursor: pointer;
-  margin-right: 2.2rem;
+.search-box {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 5px 10px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
 }
 
-#menu h1 {
-  width: 360px;
-  height: 68px;
-  color: #fff;
-  font-family: Holtwood One SC;
-  font-size: 45px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: normal;
-  cursor: pointer;
+.search-box input[type="search"] {
+    border: none;
+    outline: none;
+    padding: 5px 10px;
+    font-size: 14px;
+    border-radius: 25px;
 }
 
-#serach {
-  display: flex;
+.search-box i {
+    margin-right: 5px;
+    color: black;
 }
 
-#serach input {
-  width: 570px;
-  height: 31px;
+#icon-basket {
+    margin-left: 20px;
+    color: black;
+    width: 2rem;
+    height: 2rem;
 }
 
-#cartIcon {
-  width: 38px;
-  height: 37px;
-  margin-left: 20px;
-  color: #ffffff;
+.fa-solid.fa-circle-user {
+    color: black;
+    cursor: pointer;
+
 }
 
-/* ----------------------container---------------- */
-/* ------------------------------------------ */
-#container {
-  width: 100vw;
-  height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+#icon {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.5rem;
+}
+
+#icon:hover {
+    color: #ce9f2b;
+}
+
+font-awesome-icon {
+    width: 100px;
+    height: 100px;
 }
 </style>

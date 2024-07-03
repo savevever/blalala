@@ -3,7 +3,10 @@
     <div class="products-container">
       <div v-for="product in paginatedProducts" :key="product.id" class="originalDiv">
         <div class="products-items">
-          <img :src="require('@/assets/1.png')" />
+          <router-link to="/users/production" @click.prevent="selectProduct(product)">
+            <!-- <img :src="require('@/assets/1.png')" /> -->
+            <img :src="product.imageSource" />
+          </router-link>
           <div class="products-item">
             <p class="products-title">{{ product.title }}</p>
             <div class="price-soldout">
@@ -14,43 +17,31 @@
         </div>
       </div>
     </div>
-    <div class="pagination">
-      <button @click="prevPage" :disabled="currentPage <= 1">Previous</button>
-      <button v-for="page in totalPages" :key="page" @click="gotoPage(page)" :class="{ active: currentPage === page }">
-        {{ page }}
-      </button>
-      <button @click="nextPage" :disabled="currentPage >= totalPages">Next</button>
-    </div>
+    <paginationComponent :currentPage="currentPage" :totalPages="totalPages" @update:page="gotoPage" />
   </div>
 </template>
 
-
-
 <script>
+import paginationComponent from '../pagination-component.vue';
+import { mapGetters, mapActions } from 'vuex';
+
 export default {
   data() {
     return {
-      products: [],
       currentPage: 1,
       itemsPerPage: 12,
-      totalItems: 0,
     };
   },
+  components: {
+    paginationComponent
+  },
   created() {
-    for (let i = 0; i < 24; i++) {  // สร้างข้อมูลตัวอย่าง 12 รายการ
-      this.products.push({
-        id: i + 1,
-        imageSource: "2.png",
-        title: "Product Title " + (i + 1),
-        price: "245฿",
-        soldCount: 2450 + i,
-      });
-    }
-    this.totalItems = this.products.length;
+    this.loadProducts();
   },
   computed: {
+    ...mapGetters(['products']),
     totalPages() {
-      return Math.ceil(this.totalItems / this.itemsPerPage);
+      return Math.ceil(this.products.length / this.itemsPerPage);
     },
     paginatedProducts() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -58,24 +49,17 @@ export default {
       return this.products.slice(start, end);
     }
   },
-
   methods: {
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-      }
-    },
-    prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-      }
-    },
+    ...mapActions(['loadProducts', 'setSelectedProduct']),
     gotoPage(page) {
       this.currentPage = page;
+    },
+    selectProduct(product) {
+      this.setSelectedProduct(product);
+      this.$router.push('/users/production'); 
     }
   }
 };
-
 </script>
 
 <style scoped>
@@ -85,7 +69,7 @@ export default {
   display: flex;
   flex-direction: column;
   width: 100vw;
-  background-color: #f5f5f5;
+  background-color: #f3efe8;
   align-items: center;
 }
 
@@ -95,14 +79,8 @@ export default {
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: 20px;
-  background-color: #f5f5f5;
+  background-color: #f3efe8;
   margin-top: 1.5rem;
-}
-
-.pagination button.active {
-  font-weight: bold;
-  background-color: rgb(214, 133, 57);
-  border: rgb(240, 166, 97);
 }
 
 .originalDiv {
@@ -122,6 +100,8 @@ export default {
 .products-items img {
   width: 200px;
   height: 200px;
+  object-fit: cover;
+  object-position: center;
 }
 
 .products-items p {
@@ -161,18 +141,5 @@ export default {
   text-align: center;
 }
 
-.pagination {
-  width: 1300px;
-  margin-top: 1rem;
-  gap: 1rem;
-  display: flex;
-  justify-content: flex-end;
-}
 
-.pagination button {
-  padding: 0.3rem 0.7rem 0.3rem 0.7rem;
-}
-
-/* ------------------------------------------ */
-/* ----------------------toptree-products-items---------------- */
 </style>

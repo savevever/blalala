@@ -2,29 +2,7 @@
     <div id="container">
 
         <div id="Purchase-history-container">
-            <div id="Purchase-history-left">
-                <div class="user">
-                    <div class="user-title">
-                        <h3>การซื้อ</h3>
-                        <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
-                    </div>
-                    <p>ประวัติการซื้อ</p>
-                    <p>ตะกร้าสินค้า</p>
-                    <p>ที่อยุ่</p>
-                    <p>ตั้งค่าาการเเจ้งเตือน</p>
-                </div>
-                <div class="user">
-                    <div class="user-title">
-                        <h3>การซื้อ</h3>
-                        <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
-                    </div>
-                    <p>ประวัติการซื้อ</p>
-                    <p>ตะกร้าสินค้า</p>
-                    <p>ที่อยุ่</p>
-                    <p>ตั้งค่าาการเเจ้งเตือน</p>
-                </div>
-                <h3>ออกจากระบบ</h3>
-            </div>
+            <menuComponent></menuComponent>
             <div id="location-right">
                 <h1>ที่อยู่</h1>
                 <div id="form">
@@ -59,7 +37,9 @@
                     </form>
 
                 </div>
-                <mapAdress></mapAdress>
+                <div id="map-container">
+                    <mapAdress></mapAdress>
+                </div>
                 <div id="location-button">
                     <button>บันทึก</button>
                     <button>เเก้ไข</button>
@@ -67,17 +47,14 @@
             </div>
         </div>
     </div>
+    <footerComponent></footerComponent>
 </template>
 <script>
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
 import mapAdress from '../components/map-adress.vue';
-library.add(fas);
 
 export default {
     components: {
-        FontAwesomeIcon,
         mapAdress
     },
 };
@@ -85,11 +62,11 @@ export default {
 <style scoped>
 #Purchase-history-container {
     width: 1200px;
-    height: 700px;
+    height: 680px;
+    overflow: hidden;
     background-color: rgb(255, 255, 255);
     display: flex;
 }
-
 
 #container {
     height: auto;
@@ -97,34 +74,24 @@ export default {
     width: 100vw;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 30px;
+    /* margin-bottom: 30px; */
 }
 
-.user-title {
+
+
+#location-button{
+    margin-top: 1.5rem;
+    width:900px;
     display: flex;
-    gap: 20px;
+    gap: 1rem;
+    /* justify-content: flex-end; */
 }
-
-.user {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-}
-
 #location-button button {
     padding: 7px 10px 7px 10px;
     font-size: 17px;
+
 }
 
-#Purchase-history-left {
-    width: 250px;
-    height: 700px;
-    background-color: #D4D3D3;
-    padding: 15px 25px 15px 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
 
 #item-container {
     display: flex;
@@ -156,7 +123,7 @@ form {
 
 .row-item input {
     width: 360px;
-    height: 30px;
+    height: 28px;
 }
 
 .icon {
@@ -170,5 +137,11 @@ form {
     height: 700px;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+}
+#map-container {
+    width: 700px;
+    display: flex;
+    justify-content: flex-start;
 }
 </style>

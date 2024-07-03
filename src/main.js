@@ -8,6 +8,7 @@ import headerComponent from './components/Header-component.vue';
 import CategoryComponent from './components/homepage/Category-component.vue';
 import footerComponent from './components/Footer-component.vue';
 import JwPagination from 'jw-vue-pagination';
+<<<<<<< HEAD
 import { createRouter, createWebHistory } from 'vue-router';
 import Homepage from './page/homepage.vue';
 import LoginPage from './components/login-page.vue';
@@ -21,6 +22,9 @@ import shoppingCart from './page/shopping-cart.vue';
 import production from './page/production.vue';
 import storecontroller from '../storecontroller';
 // import shoppingCart from './page/shopping-cart.vue';
+=======
+
+>>>>>>> 345c27a (Update configurations and components)
 library.add(fas, faGoogle);
 
 const routes = [

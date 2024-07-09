@@ -6,48 +6,25 @@
             <div id="Purchase-history-right">
                 <h1>ประวัติการซื้อ</h1>
                 <div id="item-container">
-                    <div class="item">
+                    <div v-for="(product, index) in history" :key="index" class="item">
                         <div class="line"></div>
                         <div class="items">
-                            <img src="../assets/1.png" alt="" style="width: 100px; height: 100px;">
+                            <img :src="product.imageSource" alt="" style="width: 100px; height: 100px;">
                             <div class="item-1">
-
-                                <p>ตะกร้าจักรสานจากใบมะพร้าว</p>
-                                <p>ตัวเลือกสิ้นค้า:สีน้ำตาล</p>
+                                <p>{{ product.title }}</p>
+                                <!-- <p>ตัวเลือกสินค้า: {{ item.option }}</p>     -->
                             </div>
                             <div class="item-2">
-                                <p>114บาท</p>
-                                <p>จำนวน:1</p>
+                                <p>{{ product.price }} บาท</p>
+                                <p>{{ product.price }} บาท</p>
                                 <p>สถานะ:จัดส่งเเล้ว</p>
                             </div>
                         </div>
                         <div class="line"></div>
                         <div class="item-button">
-                            <button>สั่งซื้ออีกครั้ง</button>
-                            <button>ยกเลิกคำสั่งซื้อ</button>
+                            <button >สั่งซื้ออีกครั้ง</button>
+                            <button @click="cancelOrder(item.id)">ยกเลิกคำสั่งซื้อ</button>
                         </div>
-                    </div>
-                    <div class="item">
-                        <div class="line"></div>
-                        <div class="items">
-                            <img src="../assets/1.png" alt="" style="width: 100px; height: 100px;">
-                            <div class="item-1">
-
-                                <p>ตะกร้าจักรสานจากใบมะพร้าว</p>
-                                <p>ตัวเลือกสิ้นค้า:สีน้ำตาล</p>
-                            </div>
-                            <div class="item-2">
-                                <p>114บาท</p>
-                                <p>จำนวน:1</p>
-                                <p>สถานะ:จัดส่งเเล้ว</p>
-                            </div>
-                        </div>
-                        <div class="line"></div>
-                        <div class="item-button">
-                            <button>สั่งซื้ออีกครั้ง</button>
-                            <button>ยกเลิกคำสั่งซื้อ</button>
-                        </div>
-
                     </div>
                 </div>
                 <paginationComponent :currentPage="currentPage" :totalPages="totalPages" @update:page="gotoPage" />
@@ -58,13 +35,24 @@
 </template>
 <script>
 import paginationComponent from '../components/pagination-component.vue'
+import { mapGetters, mapActions } from 'vuex';
 
 
 
 export default {
     components: {
         paginationComponent
+    },mounted() {
+        this.loadHistory();
+        console.log(this.history);
     }, methods: {
+        ...mapActions(['loadHistory']),
+        reorder(item) {
+            this.$store.dispatch('addToCart', item);
+        },
+        // cancelOrder(productId) {
+        //     // ฟังก์ชันสำหรับยกเลิกคำสั่งซื้อ
+        // },
         toggleVisibility() {
             this.isVisible = !this.isVisible;
         },
@@ -85,6 +73,7 @@ export default {
 
         };
     }, computed: {
+        ...mapGetters(['history']),
         totalPages() {
             return Math.ceil(this.totalItems / this.itemsPerPage);
         },

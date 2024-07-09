@@ -4,11 +4,13 @@ export default createStore({
     state: {
         products: [],
         cart: JSON.parse(localStorage.getItem('cart')) || [],
-        selectedProduct: null
+        history: JSON.parse(localStorage.getItem('history')) || [],
+        selectedProduct: null,
     },
     getters: {
         products: state => state.products,
         cart: state => state.cart,
+        history: state => state.history,
         cartItemCount: state => state.cart.reduce((count, product) => count + product.quantity, 0),
         cartTotal: state => state.cart.reduce((total, product) => total + (product.price * product.quantity), 0),
         selectedProduct: state => state.selectedProduct 
@@ -28,6 +30,9 @@ export default createStore({
                 state.cart.push({ ...product });
             }
             localStorage.setItem('cart', JSON.stringify(state.cart));
+        }, ADD_TO_HISTORY(state, product) {
+            state.history.push({ ...product });
+            localStorage.setItem('history', JSON.stringify(state.history));
         },
         REMOVE_FROM_CART(state, productId) {
             state.cart = state.cart.filter(item => item.id !== productId);
@@ -45,6 +50,8 @@ export default createStore({
         },
         LOAD_CART(state) {
             state.cart = JSON.parse(localStorage.getItem('cart')) || [];
+        },LOAD_HISTORY(state) {
+            state.history = JSON.parse(localStorage.getItem('history')) || [];
         }
     },
     actions: {
@@ -53,9 +60,10 @@ export default createStore({
             for (let i = 0; i < 24; i++) {
                 products.push({
                     id: i + 1,
-                    // imageSource: "https://scontent.fbkk17-1.fna.fbcdn.net/v/t39.30808-6/445522735_971190521465362_3019654959300681937_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeGuT2R_OrRC7t5AOdNc73k7jMSwnD1yG-KMxLCcPXIb4n9Ag8-KJnn3pQw4MEKXPzb4DYoh72_ujwUfLu9IUwzD&_nc_ohc=-P-bsMlZ-bEQ7kNvgG5x8l6&_nc_ht=scontent.fbkk17-1.fna&oh=00_AYB2XGNQBbCBYoy_0OBPAlpKk6FqhGFoRpaVciwMBIjKeA&oe=6688497E",
                     imageSource: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGcPEga9g5PeWG7E0XTnnS2vJpjZDBdmwqIg&s",
                     title: "Product Title " + (i + 1),
+                    option:'size',
+                    Category: ['L', 'M', 'S'],
                     price: 245,
                     soldCount: 2450 ,
                 });
@@ -65,17 +73,23 @@ export default createStore({
         addToCart({ commit }, product) {
             commit('ADD_TO_CART', product);
         },
+        addToHistory({ commit }, product) {
+            commit('ADD_TO_HISTORY', product);
+        },
         removeFromCart({ commit }, productId) {
             commit('REMOVE_FROM_CART', productId);
         },
         updateQuantity({ commit }, { productId, quantity }) {
             commit('UPDATE_QUANTITY', { productId, quantity });
         },
-        setSelectedProduct({ commit }, product) { 
+        setSelectedProduct({ commit }, product) {   
             commit('SET_SELECTED_PRODUCT', product);
         },
         loadCart({ commit }) {
             commit('LOAD_CART');
+        },
+        loadHistory({ commit }) {
+            commit('LOAD_HISTORY');
         }
     }
 });

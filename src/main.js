@@ -8,23 +8,18 @@ import headerComponent from './components/Header-component.vue';
 import CategoryComponent from './components/homepage/Category-component.vue';
 import footerComponent from './components/Footer-component.vue';
 import JwPagination from 'jw-vue-pagination';
-<<<<<<< HEAD
-import { createRouter, createWebHistory } from 'vue-router';
 import Homepage from './page/homepage.vue';
 import LoginPage from './components/login-page.vue';
-import RegisterPage from './components/register-page.vue';
 import setting from './page/account-setting.vue';
-import menu from './components/account-menu.vue';
-import BusinessPerformance from './page/Business-performance.vue';
-import locationAdress from './page/location-adress.vue';
-import PurchaseHistory from './page/Purchase-history.vue';
+import RegisterPage from './components/register-page.vue';
 import shoppingCart from './page/shopping-cart.vue';
+import PurchaseHistory from './page/Purchase-history.vue';
+import locationAdress from './page/location-adress.vue';
+import BusinessPerformance from './page/Business-performance.vue';
 import production from './page/production.vue';
 import storecontroller from '../storecontroller';
-// import shoppingCart from './page/shopping-cart.vue';
-=======
-
->>>>>>> 345c27a (Update configurations and components)
+import accountMenu from './components/account-menu.vue';
+import { createRouter, createWebHistory } from 'vue-router';
 library.add(fas, faGoogle);
 
 const routes = [
@@ -40,9 +35,9 @@ const routes = [
     {
         path: '/users/register',name: 'RegisterPage',component: RegisterPage
     },
-    {
-        path: '/users/shoppingCart',name: 'shoppingCart',component: shoppingCart
-    },
+    // {
+    //     path: '/users/shoppingCart',name: 'shoppingCart',component: shoppingCart
+    // },
     {
         path: '/users/PurchaseHistory',name: 'PurchaseHistory',component: PurchaseHistory
     },
@@ -73,6 +68,6 @@ app.component('headerComponent', headerComponent);
 app.component('CategoryComponent', CategoryComponent);
 app.component('footerComponent', footerComponent);
 app.component('JwPagination', JwPagination);
-app.component('menuComponent', menu);
+app.component('menuComponent', accountMenu);
 app.mount('#app');
 app.use(storecontroller)

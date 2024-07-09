@@ -4,12 +4,10 @@
             <div id="ProductItem">
                 <div id="ProductItemHead">
                     <div id="ProductItemImg">
-                        <!-- <img :src="img" id="Image"> -->
                         <img :src="product.imageSource" id="Image"/>
                     </div>
                     <div id="ProductItemTxt">
                         <div>
-                            <!-- <h2>{{ title }}</h2> -->
                             <h2>{{ product.title }} </h2>
                         </div>
                         <div id="like">
@@ -20,10 +18,10 @@
                         </div>
                         <p class="price">฿{{ product.price }}</p>
                         <div class="option">
-                            <p>{{ option }}</p>
-                            <button v-for="(button, index) in buttons" :key="index" @click="selectedButton = index"
+                            <p>{{ product.option }}</p>
+                            <button v-for="(Category, index) in product.Category" :key="index" @click="selectedButton = index"
                                 :class="{ 'pink': selectedButton === index }">
-                                {{ button }}
+                                {{Category }}
                             </button>
                         </div>
                         <div class="quantity">
@@ -45,7 +43,7 @@
                 <div id="ProductItemButton">
                     <router-link to="/users/cart"><button @click="addToCartClicked"
                             class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
-                    <button class="btn2">ซื้อสินค้าเลย</button>
+                            <router-link to="/users/PurchaseHistory"><button class="btn2" @click="addToHistorytClicked">ซื้อสินค้าเลย</button></router-link>
                 </div>
             </div>
         </div>
@@ -65,12 +63,12 @@ export default {
         return {
             isPressedHeart: false,
             count: 0,
-            buttons: ['L', 'M', 'S'],
+            // buttons: ['L', 'M', 'S'],
             selectedButton: null,
             // title: '[ซื้อ 4 แถม 2] Downy ดาวน์นี่ น้ำยาปรับผ้านุ่ม สูตรเข้มข้น ชนิดถุงเติม ConcentratedFabricSoftener Refill 1.2L-1.35L x',
             // img: "https://yuedpao.com/wp-content/uploads/2022/03/KODNUM-BLACK-scaled-jpg.webp",
             // price: 645,
-            option: "size"
+            // option: "size"
         };
     }, computed: {
         ...mapGetters(['selectedProduct']),
@@ -82,7 +80,7 @@ export default {
         curosurSlice
     },
     methods: {
-        ...mapActions(['addToCart']),
+        ...mapActions(['addToCart','addToHistory']),
         addToCartClicked() {
             const product = {
                 id: this.product.id,
@@ -90,8 +88,19 @@ export default {
                 price: this.product.price,
                 quantity: this.count,
                 imageSource: this.product.imageSource,
+                option:this.product.option,
+                Category: this.product.Category,
             };
             this.addToCart(product);
+        }, addToHistorytClicked() {
+            const product = {
+                id: this.product.id,
+                title: this.product.title,
+                price: this.product.price,
+                quantity: this.count,
+                imageSource: this.product.imageSource,
+            };
+            this.addToHistory(product);
         },
         toggleColor(component) {
             if (component === 'heart') {

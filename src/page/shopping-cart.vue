@@ -43,7 +43,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(['updateQuantity', 'removeFromCart', 'loadCart', 'addToCart']),
+        ...mapActions(['updateQuantity', 'removeFromCart', 'loadCart']),
         calculateLinePrice(product) {
             return product.price * product.quantity;
         },
@@ -63,16 +63,17 @@ export default {
         },
         orderAgain() {
             console.log('Order again logic goes here');
-        }, addToCartClicked() {
-            const product = {
-                id: this.product.id,
-                title: this.product.title,
-                price: this.product.price,
-                quantity: this.count,
-                imageSource: this.product.imageSource,
-            };
-            this.addToCart(product);
-        }
+        },
+        //  addToCartClicked() {
+        //     const product = {
+        //         id: this.product.id,
+        //         title: this.product.title,
+        //         price: this.product.price,
+        //         quantity: this.count,
+        //         imageSource: this.product.imageSource,
+        //     };
+        //     this.addToCart(product);
+        // }
     },
     computed: {
         ...mapGetters(['cart']),

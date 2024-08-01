@@ -88,19 +88,21 @@ export default {
 <style scoped>
 #Purchase-history-container {
     width: 1200px;
-    height: 680px;
-    overflow: hidden;
-    background-color: rgb(255, 255, 255);
+    height: auto;
+    min-height: 690px;
+    background-color: #EBE3D5;
     display: flex;
 }
 
 #Purchase-history-right {
     padding: 20px;
     width: 920px;
-    height: 690px;
+    min-height: 690px;
+    height: auto; /* เปลี่ยนจากค่า height คงที่เป็น auto */
     background-color: #F4F4F5;
     display: flex;
     flex-direction: column;
+    overflow: visible;
 }
 
 .items {
@@ -141,18 +143,17 @@ export default {
     width: 100vw;
     flex-direction: column;
     align-items: center;
-    /* margin-bottom: 30px; */
 }
 
-
-
-.item-button{
- width: 100%;
+.item-button {
+    width: 100%;
 }
+
 #item-container {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .item-button :first-child {
@@ -171,7 +172,6 @@ export default {
     border: 0.2px solid #ccc;
 }
 
-
 #Purchase-history-pagination {
     display: flex;
     margin-top: 80px;
@@ -184,12 +184,9 @@ export default {
     width: auto;
     padding: 0px 10px 5px 10px;
     height: 20px;
-
-
 }
 
 .icon {
     font-size: 30px;
-
 }
 </style>

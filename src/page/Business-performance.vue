@@ -96,7 +96,7 @@ export default {
 <style scoped>
 #Purchase-history-container {
     width: 1200px;
-    height: 700px;
+    height: 690px;
     background-color: rgb(255, 255, 255);
     display: flex;
 }

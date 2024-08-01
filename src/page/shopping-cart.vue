@@ -17,13 +17,13 @@
                                 <div class="quantitycount">
                                     <input type="number" v-model="product.quantity" min="1"
                                         @change="onQuantityChange(product.id, product.quantity)">
-                                </div>
+                                </div>  
                                 <div class="product-line-price">{{ calculateLinePrice(product).toFixed(2) }} บาท</div>
                             </div>
                         </div>
                     </div>
                     <div class="item-button">
-                        <button @click="orderAgain">สั่งซื้ออีกครั้ง</button>
+                        <button @click="checkout">สั่งซื้อ</button>
                         <button @click="selectAllbutton(cartItems)">เลือกสินค้าทั้งหมด</button>
                         <button @click="clearCart">ลบรายการสินค้า</button>
                     </div>
@@ -43,7 +43,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(['updateQuantity', 'removeFromCart', 'loadCart']),
+        ...mapActions(['updateQuantity', 'removeFromCart', 'loadCart', 'processPayment']),
         calculateLinePrice(product) {
             return product.price * product.quantity;
         },
@@ -61,24 +61,21 @@ export default {
                 product.checkbox = !product.checkbox;
             });
         },
-        orderAgain() {
-            console.log('Order again logic goes here');
-        },
-        //  addToCartClicked() {
-        //     const product = {
-        //         id: this.product.id,
-        //         title: this.product.title,
-        //         price: this.product.price,
-        //         quantity: this.count,
-        //         imageSource: this.product.imageSource,
-        //     };
-        //     this.addToCart(product);
-        // }
+        checkout() {
+            const totalAmount = this.cartTotal;
+            const success = this.processPayment({ userId: 1, amount: totalAmount }); // สมมุติว่าใช้ user id 1
+            if (success) {
+                alert('ชำระเงินสำเร็จ');
+                console.log('ยอดเงินคงเหลือ: ' + this.currentBalance);
+                this.$store.commit('REMOVE_ALL_CART_ITEMS');
+            } else {
+                alert('ยอดเงินไม่พอ');
+            }
+        }
     },
     computed: {
-        ...mapGetters(['cart']),
+        ...mapGetters(['cart', 'cartTotal','currentBalance']),
         cartItems() {
-            console.log(this.cart);
             return this.cart;
         },
         selectedItems() {
@@ -101,22 +98,24 @@ export default {
 
 
 <style scoped>
-/* สไตล์ที่คุณได้ระบุไปแล้ว */
 #Purchase-history-container {
     width: 1200px;
-    height: 680px;
-    overflow: hidden;
-    background-color: rgb(255, 255, 255);
+    height: auto;
+    min-height: 690px;
+    background-color: #EBE3D5;
     display: flex;
 }
 
 #Purchase-history-right {
     padding: 20px;
+    /* padding-bottom:30px ; */
     width: 920px;
-    height: 690px;
+    height: auto;
+    /* เปลี่ยนจากค่า height คงที่เป็น auto */
     background-color: #F4F4F5;
     display: flex;
     flex-direction: column;
+    overflow: visible;
 }
 
 .items {
@@ -170,6 +169,7 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .item-button :first-child {

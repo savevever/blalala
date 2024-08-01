@@ -4,24 +4,24 @@
             <div id="ProductItem">
                 <div id="ProductItemHead">
                     <div id="ProductItemImg">
-                        <img :src="product.imageSource" id="Image"/>
+                        <img :src="product && product.imageSource ? product.imageSource : '../../assets/default.png'" id="Image" />
                     </div>
                     <div id="ProductItemTxt">
                         <div>
-                            <h2>{{ product.title }} </h2>
+                            <h2>{{ product ? product.title : 'Loading...' }}</h2>
                         </div>
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
-                                @click="toggleColor('heart')" />
-                            <p><span>5</span>คนที่ถูกใจ</p>
-                            <p><span>108.8</span>จำนวนขายแล้ว</p>
+                                @click="handleToggleLike" />
+                            <p><span>{{ likeCount }}</span> คนที่ถูกใจ</p>
+                            <p><span>{{ product ? product.soldCount : 0 }}</span> จำนวนขายแล้ว</p>
                         </div>
-                        <p class="price">฿{{ product.price }}</p>
+                        <p class="price">฿{{ product ? product.price : 'Loading...' }}</p>
                         <div class="option">
-                            <p>{{ product.option }}</p>
-                            <button v-for="(Category, index) in product.Category" :key="index" @click="selectedButton = index"
-                                :class="{ 'pink': selectedButton === index }">
-                                {{Category }}
+                            <p>{{ product ? product.option : 'Loading...' }}</p>
+                            <button v-for="(Category, index) in product ? product.Category : []" :key="index"
+                                @click="selectedButton = index" :class="{ 'pink': selectedButton === index }">
+                                {{ Category }}
                             </button>
                         </div>
                         <div class="quantity">
@@ -41,9 +41,8 @@
                     <curosurSlice></curosurSlice>
                 </div>
                 <div id="ProductItemButton">
-                    <router-link to="/users/cart"><button @click="addToCartClicked"
-                            class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
-                            <router-link to="/users/PurchaseHistory"><button class="btn2" @click="addToHistorytClicked">ซื้อสินค้าเลย</button></router-link>
+                    <router-link to="/users/cart"><button @click="addToCartClicked" class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
+                    <router-link to="/users/PurchaseHistory"><button class="btn2" @click="addToHistoryClicked">ซื้อสินค้าเลย</button></router-link>
                 </div>
             </div>
         </div>
@@ -51,60 +50,66 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
 import curosurSlice from './curosurSlice.vue';
-import { mapGetters } from 'vuex';
+
 library.add(faHeart);
 
 export default {
     data() {
         return {
-            isPressedHeart: false,
             count: 0,
-            // buttons: ['L', 'M', 'S'],
             selectedButton: null,
-            // title: '[ซื้อ 4 แถม 2] Downy ดาวน์นี่ น้ำยาปรับผ้านุ่ม สูตรเข้มข้น ชนิดถุงเติม ConcentratedFabricSoftener Refill 1.2L-1.35L x',
-            // img: "https://yuedpao.com/wp-content/uploads/2022/03/KODNUM-BLACK-scaled-jpg.webp",
-            // price: 645,
-            // option: "size"
         };
-    }, computed: {
-        ...mapGetters(['selectedProduct']),
+    },
+    computed: {
+        ...mapGetters(['selectedProduct', 'likedProducts']),
         product() {
             return this.selectedProduct;
+        },
+        isPressedHeart() {
+            return !!this.likedProducts[this.product?.id];
+        },
+        likeCount() {
+            return this.isPressedHeart ? 1 : 0;
         }
     },
     components: {
         curosurSlice
     },
     methods: {
-        ...mapActions(['addToCart','addToHistory']),
+        ...mapActions(['addToCart', 'addToHistory', 'toggleLike']),
         addToCartClicked() {
-            const product = {
-                id: this.product.id,
-                title: this.product.title,
-                price: this.product.price,
-                quantity: this.count,
-                imageSource: this.product.imageSource,
-                option:this.product.option,
-                Category: this.product.Category,
-            };
-            this.addToCart(product);
-        }, addToHistorytClicked() {
-            const product = {
-                id: this.product.id,
-                title: this.product.title,
-                price: this.product.price,
-                quantity: this.count,
-                imageSource: this.product.imageSource,
-            };
-            this.addToHistory(product);
+            if (this.product) {
+                const product = {
+                    id: this.product.id,
+                    title: this.product.title,
+                    price: this.product.price,
+                    quantity: this.count,
+                    imageSource: this.product.imageSource,
+                    option: this.product.option,
+                    Category: this.product.Category,
+                };
+                this.addToCart(product);
+            }
         },
-        toggleColor(component) {
-            if (component === 'heart') {
-                this.isPressedHeart = !this.isPressedHeart;
+        addToHistoryClicked() {
+            if (this.product) {
+                const product = {
+                    id: this.product.id,
+                    title: this.product.title,
+                    price: this.product.price,
+                    quantity: this.count,
+                    imageSource: this.product.imageSource,
+                };
+                this.addToHistory(product);
+            }
+        },
+        handleToggleLike() {
+            if (this.product) {
+                this.toggleLike(this.product.id);
             }
         },
         increment() {

@@ -7,7 +7,7 @@
             <nav>
                 <ul id="MenuItems">
                     <li><router-link to="/">Home</router-link></li>
-                    <li><router-link to="/users/StartSelling">Start Selling</router-link></li>
+                    <li><router-link to="/users/selling">Start Selling</router-link></li>
                     <li><router-link to="/users/Center">Center</router-link></li>
                     <li v-if="!isLoggedIn"><router-link to="/users/login">Login</router-link></li>
                     <!-- <li v-else @click="logout"><router-link>Logout</router-link></li> -->

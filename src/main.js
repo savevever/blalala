@@ -9,17 +9,21 @@ import CategoryComponent from './components/homepage/Category-component.vue';
 import footerComponent from './components/Footer-component.vue';
 import JwPagination from 'jw-vue-pagination';
 import Homepage from './page/homepage.vue';
-import LoginPage from './components/login-page.vue';
+import LoginPage from './page/login-page.vue';
 import setting from './page/account-setting.vue';
-import RegisterPage from './components/register-page.vue';
+import RegisterPage from './page/register-page.vue';
 import shoppingCart from './page/shopping-cart.vue';
 import PurchaseHistory from './page/Purchase-history.vue';
 import locationAdress from './page/location-adress.vue';
 import BusinessPerformance from './page/Business-performance.vue';
 import production from './page/production.vue';
 import storecontroller from '../storecontroller';
-import accountMenu from './components/account-menu.vue';
+import accountMenu from './components/account/account-menu.vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import sellingCompomemt from './page/selling-compomemt.vue';
+import  storepage from './page/store-page.vue';
+import StoreComponent from './components/production/store-component.vue'; 
+
 library.add(fas, faGoogle);
 
 const routes = [
@@ -52,6 +56,20 @@ const routes = [
     },
     {
         path: '/users/cart',name: 'shoppingCart',component: shoppingCart
+    },{
+        path: '/users/selling',name: 'selling',component: sellingCompomemt
+    },{
+        path: '/users/storepage',name: 'storepage',component: storepage
+    },
+     {
+        path: '/store/:seller',
+        component: StoreComponent 
+    },
+    {
+        path: '/store/:seller',
+        name: 'StoreComponent',
+        component: StoreComponent,
+        props: route => ({ seller: route.params.seller })
     }
 ];
 

@@ -43,7 +43,7 @@ export default {
 <style scoped>
 #Purchase-history-container {
     width: 1200px;
-    height: 680px;
+    height: 690px;
     overflow: hidden;
     background-color: rgb(255, 255, 255);
     display: flex;
@@ -57,13 +57,12 @@ export default {
 }
 
 #container {
-    margin-top: 50px;
-    height: auto;
+    margin-top: 70px;
+    height: 690px;
     display: flex;
     width: 100vw;
     flex-direction: column;
     align-items: center;
-    /* margin-bottom: 30px; */
 }
 
 #item-container {

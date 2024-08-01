@@ -22,6 +22,7 @@
     "express": "^4.19.2",
     "express-flash": "^0.0.2",
     "express-session": "^1.18.0",
+    "jsonwebtoken": "^9.0.2",
     "jw-paginate": "^1.0.4",
     "jw-vue-pagination": "^1.0.3",
     "morgan": "^1.10.0",

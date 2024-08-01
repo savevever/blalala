@@ -4,11 +4,11 @@
             <div id="storeLeft">
                 <div id="storeLeftIMG">
                     <router-link to="/users/storepage">
-                        <img src="../../assets/1.png" alt="">
+                        <img src="../assets/1.png" alt="">
                     </router-link>
                 </div>
                 <div id="storeLeftTXT">
-                    <p id="namestore">{{ shopInfo ? shopInfo.name : 'Loading...' }}</p>
+                    <p id="namestore">Magic Babe</p>
                     <p>Active 4 นาที ที่ผ่านมา</p>
                     <div id="storeLeftButton">
                         <button @click="handleToggleFollow">
@@ -43,7 +43,6 @@ import { reactive } from 'vue';
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlus, faComment, faHouse } from '@fortawesome/free-solid-svg-icons';
-import axios from 'axios';
 
 library.add(faPlus, faComment, faHouse);
 
@@ -51,18 +50,11 @@ export default {
     components: {
         FontAwesomeIcon,
     },
-    props: {
-        seller: {
-            type: String,
-            required: true
-        }
-    },
     data() {
         return {
             followedShops: reactive(JSON.parse(localStorage.getItem('followedShops')) || {}),
-            shopId: null,
-            followerCounts: reactive(JSON.parse(localStorage.getItem('followerCounts')) || { 1: 0 }),
-            shopInfo: null
+            shopId: 1,
+            followerCounts: reactive(JSON.parse(localStorage.getItem('followerCounts')) || { 1: 0 })
         };
     },
     computed: {
@@ -73,34 +65,7 @@ export default {
             return this.followerCounts[this.shopId] || 0;
         }
     },
-    mounted() {
-        const productId = new URLSearchParams(window.location.search).get('productId');
-        if (productId) {
-            this.fetchShopInfo(productId);
-        }
-
-    },
     methods: {
-        async fetchShopInfo(productId) {
-            try {
-                const response = await axios.get('http://localhost:8081/seller/item');
-                const shops = response.data;
-
-                // Find the shop associated with the given productId
-                const shop = shops.find(shop => shop.id == productId);
-
-                if (shop) {
-                    this.shopId = shop.id;
-                    this.shopInfo = { name: shop.name };
-                    console.log('Shop info set:', this.shopInfo);
-                } else {
-                    console.error('Shop not found');
-                }
-            } catch (error) {
-                console.error('Error fetching shop info:', error);
-            }
-        },
-
         handleToggleFollow() {
             if (this.followedShops[this.shopId]) {
                 delete this.followedShops[this.shopId];
@@ -112,26 +77,25 @@ export default {
             localStorage.setItem('followedShops', JSON.stringify(this.followedShops));
             localStorage.setItem('followerCounts', JSON.stringify(this.followerCounts));
         }
-    },
+    }
 };
 </script>
-
 <style scoped>
 .container {
     display: flex;
-    width: 1300px;
+    width: 100vw;
     flex-direction: column;
     align-items: center;
 }
 
 #storeContainer {
-    width: 1285px;
-    height: 114px;
-    border-radius: 35px;
+    width: 100vw;
+    height: 250px;
     background: #FFF;
-    margin: 20px 0 20px 0;
     display: flex;
-    padding: 10px;
+    align-items: center;
+    justify-content: center;
+    margin-top: -70px
 }
 
 #storeRight {
@@ -144,29 +108,29 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 40px;
+    margin-right: 5%;
 }
 
 #storeRight p {
-    font-size: 18px;
+    font-size: 21px;
 }
 
 #storeLeftIMG img {
-    width: 80px;
-    height: 80px;
-    border-radius: 40px;
+    width: 130px;
+    height: 130px;
+    border-radius: 70px;
     margin-right: 15px;
 }
 
 #line {
     width: 3px;
-    height: 100px;
+    height: 200px;
     background-color: rgb(116, 111, 111);
     margin-right: 40px;
 }
 
 #namestore {
-    font-size: 29px;
+    font-size: 39px;
 }
 
 #storeLeftTXT {
@@ -208,8 +172,31 @@ export default {
 }
 
 .font-awesome {
-    width: 13px;
-    height: 18px;
+    width: 16px;
+    height: 21px;
     margin-right: 5px;
+}
+.detailStore{
+    width: 1300px;
+    height: 500px;
+    background-color: #ffffff;
+    
+}
+.detailStore p{
+    margin: 50px;
+    font-size: 20px;
+}
+.detailStore h2{
+    margin:50px 0 0 50px ;
+}
+textarea {
+    margin: 50px;
+    width: 93%;
+    height: 330px;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+    resize: vertical; 
+    border: none;
 }
 </style>

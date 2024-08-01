@@ -51,7 +51,7 @@
 </template>
 <script>
 
-import mapAdress from '../components/map-adress.vue';
+import mapAdress from '../components/account/map-adress.vue';
 
 export default {
     components: {
@@ -62,7 +62,7 @@ export default {
 <style scoped>
 #Purchase-history-container {
     width: 1200px;
-    height: 680px;
+    height: 690px;
     overflow: hidden;
     background-color: rgb(255, 255, 255);
     display: flex;

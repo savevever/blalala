@@ -1,4 +1,5 @@
 import { createStore } from 'vuex';
+import axios from 'axios';
 
 export default createStore({
     state: {
@@ -6,6 +7,10 @@ export default createStore({
         cart: JSON.parse(localStorage.getItem('cart')) || [],
         history: JSON.parse(localStorage.getItem('history')) || [],
         selectedProduct: null,
+        users: [],
+        currentUser: JSON.parse(localStorage.getItem('user')) || { id: null, name: '', role: 'user', balance: 0 },
+        likedProducts: JSON.parse(localStorage.getItem('likedProducts')) || {},
+        followedShops: JSON.parse(localStorage.getItem('followedShops')) || {},
     },
     getters: {
         products: state => state.products,
@@ -13,7 +18,11 @@ export default createStore({
         history: state => state.history,
         cartItemCount: state => state.cart.reduce((count, product) => count + product.quantity, 0),
         cartTotal: state => state.cart.reduce((total, product) => total + (product.price * product.quantity), 0),
-        selectedProduct: state => state.selectedProduct 
+        selectedProduct: state => state.selectedProduct,
+        user: state => userId => state.users.find(user => user.id === userId),
+        currentBalance: state => state.currentUser.balance,
+        likedProducts: state => state.likedProducts,
+        followedShops: state => state.followedShops,
     },
     mutations: {
         SET_PRODUCTS(state, products) {
@@ -45,30 +54,81 @@ export default createStore({
                 localStorage.setItem('cart', JSON.stringify(state.cart));
             }
         },
-        SET_SELECTED_PRODUCT(state, product) { 
+        SET_SELECTED_PRODUCT(state, product) {
             state.selectedProduct = product;
         },
         LOAD_CART(state) {
             state.cart = JSON.parse(localStorage.getItem('cart')) || [];
-        },LOAD_HISTORY(state) {
+        }, LOAD_HISTORY(state) {
             state.history = JSON.parse(localStorage.getItem('history')) || [];
-        }
+        },
+        SET_USERS(state, users) {
+            state.users = users;
+        },
+        SET_CURRENT_USER(state, user) {
+            state.currentUser = user;
+            localStorage.setItem('user', JSON.stringify(user));
+        },
+        REMOVE_ALL_CART_ITEMS(state) {
+            state.cart = [];
+            localStorage.setItem('cart', JSON.stringify(state.cart));
+        },
+        UPDATE_BALANCE(state, { userId, amount }) {
+            const user = state.users.find(user => user.id === userId);
+            if (user) user.balance -= amount;
+        }, TOGGLE_LIKE(state, productId) {
+            if (state.likedProducts[productId]) {
+                delete state.likedProducts[productId];
+            } else {
+                state.likedProducts[productId] = true;
+            }
+            localStorage.setItem('likedProducts', JSON.stringify(state.likedProducts));
+        }, TOGGLE_FOLLOW_SHOP(state, shopId) {
+            if (state.followedShops[shopId]) {
+                state.followedShops[shopId] = !state.followedShops[shopId];
+            } else {
+                state.followedShops[shopId] = true;
+            }
+            localStorage.setItem('followedShops', JSON.stringify(state.followedShops));
+        },
     },
     actions: {
-        loadProducts({ commit }) {
-            const products = [];
-            for (let i = 0; i < 24; i++) {
-                products.push({
-                    id: i + 1,
-                    imageSource: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGcPEga9g5PeWG7E0XTnnS2vJpjZDBdmwqIg&s",
-                    title: "Product Title " + (i + 1),
-                    option:'size',
-                    Category: ['L', 'M', 'S'],
-                    price: 245,
-                    soldCount: 2450 ,
-                });
+        async loadUsers({ commit }) {
+            try {
+                const response = await axios.get('http://localhost:8081/users');
+                commit('SET_USERS', response.data);
+            } catch (error) {
+                console.error('Error loading users:', error);
             }
-            commit('SET_PRODUCTS', products);
+        },
+        async login({ commit }, { email, password }) {
+            try {
+                const response = await axios.post('http://localhost:8081/users/login', { email, password });
+                const user = response.data;
+                commit('SET_CURRENT_USER', user);
+                return user;
+            } catch (error) {
+                console.error('Login failed:', error);
+                throw error;
+            }
+        },
+        async loadProducts({ commit }) {
+            try {
+                const response = await axios.get('/seller/item');
+                commit('SET_PRODUCTS', response.data);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        },
+
+        processPayment({ commit, getters }, { userId, amount }) {
+            const user = getters.user(userId);
+            if (user && user.balance >= amount) {
+                commit('UPDATE_BALANCE', { userId, amount });
+                return true; // Payment success
+            } else {
+                return false; // Payment failure
+            }
         },
         addToCart({ commit }, product) {
             commit('ADD_TO_CART', product);
@@ -82,7 +142,7 @@ export default createStore({
         updateQuantity({ commit }, { productId, quantity }) {
             commit('UPDATE_QUANTITY', { productId, quantity });
         },
-        setSelectedProduct({ commit }, product) {   
+        setSelectedProduct({ commit }, product) {
             commit('SET_SELECTED_PRODUCT', product);
         },
         loadCart({ commit }) {
@@ -90,6 +150,11 @@ export default createStore({
         },
         loadHistory({ commit }) {
             commit('LOAD_HISTORY');
-        }
+        },
+        toggleLike({ commit }, productId) {
+            commit('TOGGLE_LIKE', productId);
+        }, toggleFollowShop({ commit }, shopId) {  // เพิ่ม action สำหรับติดตามร้านค้า
+            commit('TOGGLE_FOLLOW_SHOP', shopId);
+        },
     }
 });

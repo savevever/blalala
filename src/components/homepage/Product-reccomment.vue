@@ -3,10 +3,11 @@
     <div class="products-container">
       <div v-for="product in paginatedProducts" :key="product.id" class="originalDiv">
         <div class="products-items">
-          <router-link to="/users/production" @click.prevent="selectProduct(product)">
-            <!-- <img :src="require('@/assets/1.png')" /> -->
-            <img :src="product.imageSource" />
-          </router-link>
+          <div @click="selectProduct(product)">
+            <router-link :to="{ path: '/users/production', query: { productId: product.id } }">
+              <img :src="product.imageSource" />
+            </router-link>
+          </div>
           <div class="products-item">
             <p class="products-title">{{ product.title }}</p>
             <div class="price-soldout">
@@ -24,6 +25,7 @@
 <script>
 import paginationComponent from '../pagination-component.vue';
 import { mapGetters, mapActions } from 'vuex';
+import axios from 'axios';
 
 export default {
   data() {
@@ -50,17 +52,26 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['loadProducts', 'setSelectedProduct']),
+    ...mapActions(['setSelectedProduct']),
+    async loadProducts() {
+      try {
+        const response = await axios.get('http://localhost:8081/seller/item');
+        this.$store.commit('SET_PRODUCTS', response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    },
     gotoPage(page) {
       this.currentPage = page;
     },
     selectProduct(product) {
       this.setSelectedProduct(product);
-      this.$router.push('/users/production'); 
     }
   }
 };
 </script>
+
+
 
 <style scoped>
 /* ------------------------------------------ */
@@ -140,6 +151,4 @@ export default {
   background: #ffffff;
   text-align: center;
 }
-
-
 </style>

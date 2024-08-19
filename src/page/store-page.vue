@@ -1,23 +1,22 @@
 <template>
     <div class="container">
         <div id="storeContainer">
+            <!-- ข้อมูลร้านค้า -->
             <div id="storeLeft">
                 <div id="storeLeftIMG">
-                    <router-link to="/users/storepage">
-                        <img src="../assets/1.png" alt="">
-                    </router-link>
+                    <img src="../assets/1.png" alt="Store Image">
                 </div>
                 <div id="storeLeftTXT">
-                    <p id="namestore">Magic Babe</p>
+                    <p id="namestore">{{ shopInfo ? shopInfo.name : 'Loading...' }}</p>
                     <p>Active 4 นาที ที่ผ่านมา</p>
                     <div id="storeLeftButton">
                         <button @click="handleToggleFollow">
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
-                            <p>{{ isFollowed ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
+                            <p>{{ isFollowed(shopId) ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
                         </button>
                         <button>
                             <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
-                            <p>เเชด</p>
+                            <p>แชท</p>
                         </button>
                         <button>
                             <font-awesome-icon :icon="['fas', 'house']" class="font-awesome" />
@@ -29,20 +28,40 @@
             <div id="line"></div>
             <div id="storeRight">
                 <p>คะแนน: 51.9พัน</p>
-                <p>รายการสินค้า: 199</p>
+                <p>รายการสินค้า: {{ products.length }}</p>
                 <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p>
-                <p>เข้าร่วมเมื่อ: 24เดือนที่ผ่านมา</p>
-                <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
+                <p>เข้าร่วมเมื่อ: 24 เดือนที่ผ่านมา</p>
+                <p>ผู้ติดตาม: <span>{{ followerCount(shopId) }}</span> คน</p>
+            </div>
+        </div>
+        <!-- ส่วนแสดงสินค้า -->
+        <div class="products-container">
+            <div v-for="product in filteredProducts" :key="product.id" class="originalDiv">
+                <div class="products-items">
+                    <div @click="selectProduct(product)">
+                        <router-link :to="{ path: '/users/production', query: { productId: product.id } }">
+                            <img :src="product.imageSource" />
+                        </router-link>
+                    </div>
+                    <div class="products-item">
+                        <p class="products-title">{{ product.title }}</p>
+                        <div class="price-soldout">
+                            <p class="price">{{ product.price }}</p>
+                            <p class="sold-out">ขายแล้ว {{ product.soldCount }} ชิ้น</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { reactive } from 'vue';
+import { mapActions, mapGetters } from 'vuex';
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlus, faComment, faHouse } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
 
 library.add(faPlus, faComment, faHouse);
 
@@ -52,34 +71,64 @@ export default {
     },
     data() {
         return {
-            followedShops: reactive(JSON.parse(localStorage.getItem('followedShops')) || {}),
-            shopId: 1,
-            followerCounts: reactive(JSON.parse(localStorage.getItem('followerCounts')) || { 1: 0 })
+            products: [], 
+            seller: ''
         };
     },
     computed: {
-        isFollowed() {
-            return !!this.followedShops[this.shopId];
+        ...mapGetters(['shopInfo', 'isFollowed', 'followerCount']),
+        shopId() {
+            return this.shopInfo ? this.shopInfo.id : null;
         },
-        followerCount() {
-            return this.followerCounts[this.shopId] || 0;
+        filteredProducts() {
+            console.log('Filtering products with seller:', this.seller);
+            const filtered = this.products.filter(product => product.seller === this.seller);    
+            console.log('Filtered products:', filtered);
+            return filtered;
         }
     },
+    async mounted() {
+        const productId = new URLSearchParams(window.location.search).get('productId');
+        // console.log('Product ID:', productId);
+        if (productId) {
+            await this.fetchShopInfo(productId);
+            await this.loadProducts();
+            this.setSeller(productId);
+        }
+
+    },
     methods: {
+        ...mapActions(['fetchShopInfo', 'toggleFollowShop', 'setSelectedProduct']),
         handleToggleFollow() {
-            if (this.followedShops[this.shopId]) {
-                delete this.followedShops[this.shopId];
-                this.followerCounts[this.shopId] = Math.max(0, this.followerCounts[this.shopId] - 1);
-            } else {
-                this.followedShops[this.shopId] = true;
-                this.followerCounts[this.shopId] = (this.followerCounts[this.shopId] || 0) + 1;
+            if (this.shopId) {
+                this.toggleFollowShop(this.shopId);
             }
-            localStorage.setItem('followedShops', JSON.stringify(this.followedShops));
-            localStorage.setItem('followerCounts', JSON.stringify(this.followerCounts));
+        },
+        selectProduct(product) {
+            this.setSelectedProduct(product);
+        },
+        async loadProducts() {
+            try {
+                const response = await axios.get('http://localhost:8081/seller/item');
+                this.products = response.data;
+                console.log('Fetched products:', this.products);    
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        },
+        setSeller(productId) {
+            const product = this.products.find(p => p.id == productId);
+            console.log('Found product:', product); 
+
+            if (product) {
+                this.seller = product.seller;
+                // console.log('Seller:', this.seller);
+            }
         }
     }
 };
 </script>
+
 <style scoped>
 .container {
     display: flex;
@@ -176,19 +225,23 @@ export default {
     height: 21px;
     margin-right: 5px;
 }
-.detailStore{
+
+.detailStore {
     width: 1300px;
     height: 500px;
     background-color: #ffffff;
-    
+
 }
-.detailStore p{
+
+.detailStore p {
     margin: 50px;
     font-size: 20px;
 }
-.detailStore h2{
-    margin:50px 0 0 50px ;
+
+.detailStore h2 {
+    margin: 50px 0 0 50px;
 }
+
 textarea {
     margin: 50px;
     width: 93%;
@@ -196,7 +249,84 @@ textarea {
     padding: 10px;
     box-sizing: border-box;
     font-size: 16px;
-    resize: vertical; 
+    resize: vertical;
     border: none;
+}
+
+/***** */
+/* CSS ที่เกี่ยวกับสินค้า */
+.products-container {
+    width: 1300px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 20px;
+    background-color: #f3efe8;
+    margin-top: 1.5rem;
+}
+
+.originalDiv {
+    flex: 0 1 calc(16.66% - 20px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.products-items {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.products-items img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    object-position: center;
+}
+
+.products-items p {
+    width: 200px;
+    height: 70px;
+    text-align: center;
+}
+
+.products-title {
+    font-size: 20px;
+}
+
+.price {
+    font-size: 1.15rem;
+    color: #b80d0d;
+}
+
+.sold-out {
+    font-size: 0.75rem;
+    margin-right: 10px;
+}
+
+.price-soldout {
+    width: 200px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    overflow: hidden;
+    padding-bottom: 0.5rem;
+}
+
+.products-item {
+    width: 100%;
+    background: #ffffff;
+    text-align: center;
+}
+
+/* CSS อื่น ๆ ที่เกี่ยวข้องกับ storePage */
+.container {
+    display: flex;
+    width: 100vw;
+    flex-direction: column;
+    align-items: center;
 }
 </style>

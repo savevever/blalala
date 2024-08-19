@@ -20,57 +20,85 @@ import production from './page/production.vue';
 import storecontroller from '../storecontroller';
 import accountMenu from './components/account/account-menu.vue';
 import { createRouter, createWebHistory } from 'vue-router';
-import sellingCompomemt from './page/selling-compomemt.vue';
-import  storepage from './page/store-page.vue';
-import StoreComponent from './components/production/store-component.vue'; 
+import sellingCompomemt from './components/selling/form-one-seller.vue';
+import storepage from './page/store-page.vue';
+import StoreComponent from './components/production/store-component.vue';
+import storePage from './page/store-page.vue';
+import FormOneSeller from './components/selling/form-one-seller.vue'
+import FormTwoSeller from './components/selling/form-two-seller.vue'
+import FormThreeSeller from './components/selling/form-three-seller.vue'
+import FormFourSeller from './components/selling/form-four-seller.vue'
+import StartSelling from './components/selling/start-selling.vue'
+import salesPage from './components/selling/sales-page.vue'
 
 library.add(fas, faGoogle);
 
 const routes = [
     {
-        path: '/',name: 'Homepage',component: Homepage
+        path: '/', name: 'Homepage', component: Homepage
     },
     {
-        path: '/users/login',name: 'LoginPage',component: LoginPage
+        path: '/users/login', name: 'LoginPage', component: LoginPage
     },
     {
-        path: '/users/setting',name: 'setting',component: setting
+        path: '/users/setting', name: 'setting', component: setting
     },
     {
-        path: '/users/register',name: 'RegisterPage',component: RegisterPage
+        path: '/users/register', name: 'RegisterPage', component: RegisterPage
     },
     // {
     //     path: '/users/shoppingCart',name: 'shoppingCart',component: shoppingCart
     // },
     {
-        path: '/users/PurchaseHistory',name: 'PurchaseHistory',component: PurchaseHistory
+        path: '/users/PurchaseHistory', name: 'PurchaseHistory', component: PurchaseHistory
     },
     {
-        path: '/users/locationAdress',name: 'locationAdress',component: locationAdress
+        path: '/users/locationAdress', name: 'locationAdress', component: locationAdress
     },
     {
-        path: '/users/Business',name: 'BusinessPerformance',component: BusinessPerformance
+        path: '/users/Business', name: 'BusinessPerformance', component: BusinessPerformance
     },
     {
-        path: '/users/production',name: 'production',component: production
+        path: '/users/production', name: 'production', component: production
     },
     {
-        path: '/users/cart',name: 'shoppingCart',component: shoppingCart
-    },{
-        path: '/users/selling',name: 'selling',component: sellingCompomemt
-    },{
-        path: '/users/storepage',name: 'storepage',component: storepage
+        path: '/users/cart', name: 'shoppingCart', component: shoppingCart
+    }, {
+        path: '/users/selling', name: 'selling', component: sellingCompomemt
     },
-     {
+    {
+        path: '/users/storepage', name: 'storepage', component: storepage
+    },
+    {
         path: '/store/:seller',
-        component: StoreComponent 
+        component: StoreComponent
     },
     {
         path: '/store/:seller',
         name: 'StoreComponent',
         component: StoreComponent,
-        props: route => ({ seller: route.params.seller })
+        props: true
+    },
+    {
+        path: '/store/storepage',
+        name: 'StorePage',
+        component: storePage,
+        props: route => ({ shopInfo: route.params.shopInfo })
+    }, {
+        path:'/selling/FormTwoSeller', name:'FormTwoSeller', component:FormTwoSeller
+    }, {
+        path: '/selling/FormOneSeller', name: 'FormOneSeller', component: FormOneSeller
+    }, {
+        path: '/selling/FormThreeSeller', name: 'FormThreeSeller ', component: FormThreeSeller
+    }, {
+        path: '/selling/FormFourSeller', name: 'FormFourSeller ', component: FormFourSeller
+    }, {
+        path: '/selling/StartSelling', name: 'StartSelling ', component: StartSelling
+    }, {
+        path: '/selling/salesPage', name: 'salesPage ', component: salesPage
     }
+
+    
 ];
 
 const router = createRouter({

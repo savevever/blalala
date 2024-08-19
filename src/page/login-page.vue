@@ -43,41 +43,37 @@ export default {
         };
     },
     methods: {
-        login() {
-            axios.post('http://localhost:8081/users/login', {
-                email: this.email,
-                password: this.password
-            })
-                .then(response => {
-                    const data = response.data;
-                    if (response.status === 200) {
-                        this.messages.success_msg = data.message;
-                        this.messages.error = '';
-                        this.isLoggedIn = true;
-                        localStorage.setItem('isLoggedIn', true)
-                        localStorage.setItem('user', JSON.stringify(data.user));
-                        window.location.href = 'http://localhost:8080/';
-                    } else {
-                        this.messages.error = data.message;
-                        this.messages.success_msg = '';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    this.messages.error = 'An error occurred. Please try again.';
-                    this.messages.success_msg = '';
+        async login() {
+            try {
+                const response = await axios.post('http://localhost:8081/users/login', {
+                    email: this.email,
+                    password: this.password
                 });
+
+                if (response.status === 200) {
+                    const data = response.data;
+                    this.messages.success_msg = data.message;
+                    this.messages.error = '';
+                    this.isLoggedIn = true;
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    console.log('User data:', data.user);
+                    console.log('Token:', data.token);
+                    window.location.href = 'http://localhost:8080/';
+                } else {
+                    this.messages.error = response.data.message;
+                    this.messages.success_msg = '';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.messages.error = 'An error occurred. Please try again.';
+                this.messages.success_msg = '';
+            }
         }
     }
 };
 </script>
-
 <style scoped>
-/* Add your styles here */
-/* .login-page {
-    background-color: #ffffff;
-} */
-
 .form-box {
     width: 380px;
     height: 480px;
@@ -170,7 +166,8 @@ export default {
 .login-register a:hover {
     text-decoration: underline;
 }
-.success{
+
+.success {
     background-color: #2cb856;
 }
 </style>

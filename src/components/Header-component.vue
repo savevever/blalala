@@ -7,14 +7,16 @@
             <nav>
                 <ul id="MenuItems">
                     <li><router-link to="/">Home</router-link></li>
-                    <li><router-link to="/users/selling">Start Selling</router-link></li>
+                    <li><router-link to="/selling/salesPage">Start Selling</router-link></li>
                     <li><router-link to="/users/Center">Center</router-link></li>
                     <li v-if="!isLoggedIn"><router-link to="/users/login">Login</router-link></li>
-                    <!-- <li v-else @click="logout"><router-link>Logout</router-link></li> -->
+                    <li v-if="isLoggedIn"><a @click="logout">Logout</a></li>
                     <li>
-                        <div class="profile"><router-link to="/users/setting"><font-awesome-icon
-                                    :icon="['fas', 'circle-user']" id="icon"
-                                    @click="toggleMenu"></font-awesome-icon></router-link>
+                        <div class="profile">
+                            <router-link to="/users/setting">
+                                <font-awesome-icon :icon="['fas', 'circle-user']" id="icon"
+                                    @click="toggleMenu"></font-awesome-icon>
+                            </router-link>
                             <p v-if="isLoggedIn"><router-link to="/users/setting">{{ userName }}</router-link></p>
                         </div>
 
@@ -39,6 +41,7 @@
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faCartShopping, faCircleUser } from '@fortawesome/free-solid-svg-icons'
+// import jwtDecode from 'jwt-decode';
 
 library.add(faSearch, faCartShopping, faCircleUser)
 
@@ -46,7 +49,6 @@ export default {
     data() {
         return {
             isMenuOpen: false,
-            user: 'User Name',
             isLoggedIn: false
         };
     }, created() {
@@ -60,12 +62,21 @@ export default {
             this.isMenuOpen = !this.isMenuOpen;
         },
         checkLoginStatus() {
-            this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const token = localStorage.getItem('token');
+            this.isLoggedIn = !!token;
         }, getUserName() {
             const user = JSON.parse(localStorage.getItem('user'));
+            console.log('User data:', user);
             if (user) {
                 this.userName = user.name;
+                console.log('User name:', this.userName);  // ตรวจสอบชื่อผู้ใช้ที่ดึงมา
             }
+        }, logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            this.isLoggedIn = false;
+            this.userName = '';
+            window.location.href = '/';
         }
     }
 };

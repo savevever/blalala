@@ -3,7 +3,7 @@
         <div id="storeContainer">
             <div id="storeLeft">
                 <div id="storeLeftIMG">
-                    <router-link to="/users/storepage">
+                    <router-link :to="{ path: '/store/storepage', query: { productId: shopId } }">
                         <img src="../../assets/1.png" alt="">
                     </router-link>
                 </div>
@@ -13,7 +13,7 @@
                     <div id="storeLeftButton">
                         <button @click="handleToggleFollow">
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
-                            <p>{{ isFollowed ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
+                            <p>{{ isFollowed(shopId) ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
                         </button>
                         <button>
                             <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
@@ -32,18 +32,17 @@
                 <p>รายการสินค้า: 199</p>
                 <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p>
                 <p>เข้าร่วมเมื่อ: 24เดือนที่ผ่านมา</p>
-                <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
+                <p>ผู้ติดตาม: <span>{{ followerCount(shopId) }}</span> คน</p>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { reactive } from 'vue';
+import { mapState, mapActions, mapGetters } from 'vuex';
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlus, faComment, faHouse } from '@fortawesome/free-solid-svg-icons';
-import axios from 'axios';
 
 library.add(faPlus, faComment, faHouse);
 
@@ -52,67 +51,35 @@ export default {
         FontAwesomeIcon,
     },
     props: {
-        seller: {
-            type: String,
-            required: true
-        }
-    },
-    data() {
-        return {
-            followedShops: reactive(JSON.parse(localStorage.getItem('followedShops')) || {}),
-            shopId: null,
-            followerCounts: reactive(JSON.parse(localStorage.getItem('followerCounts')) || { 1: 0 }),
-            shopInfo: null
-        };
+        // seller: {
+        //     type: String,
+        //     required: true
+        // }
     },
     computed: {
-        isFollowed() {
-            return !!this.followedShops[this.shopId];
-        },
-        followerCount() {
-            return this.followerCounts[this.shopId] || 0;
+        ...mapState(['shopInfo']),
+        ...mapGetters(['isFollowed', 'followerCount']),
+        shopId() {
+            return this.shopInfo ? this.shopInfo.id : null;
         }
     },
     mounted() {
         const productId = new URLSearchParams(window.location.search).get('productId');
         if (productId) {
             this.fetchShopInfo(productId);
-        }
 
+        }
     },
     methods: {
-        async fetchShopInfo(productId) {
-            try {
-                const response = await axios.get('http://localhost:8081/seller/item');
-                const shops = response.data;
-
-                // Find the shop associated with the given productId
-                const shop = shops.find(shop => shop.id == productId);
-
-                if (shop) {
-                    this.shopId = shop.id;
-                    this.shopInfo = { name: shop.name };
-                    console.log('Shop info set:', this.shopInfo);
-                } else {
-                    console.error('Shop not found');
-                }
-            } catch (error) {
-                console.error('Error fetching shop info:', error);
-            }
-        },
-
+        ...mapActions(['fetchShopInfo', 'toggleFollowShop']),
         handleToggleFollow() {
-            if (this.followedShops[this.shopId]) {
-                delete this.followedShops[this.shopId];
-                this.followerCounts[this.shopId] = Math.max(0, this.followerCounts[this.shopId] - 1);
-            } else {
-                this.followedShops[this.shopId] = true;
-                this.followerCounts[this.shopId] = (this.followerCounts[this.shopId] || 0) + 1;
+            if (this.shopId) {
+                // console.log('Shop ID before toggle:', this.shopId);
+                this.toggleFollowShop(this.shopId);
+                // console.log('Shop ID after toggle:', this.shopId);
             }
-            localStorage.setItem('followedShops', JSON.stringify(this.followedShops));
-            localStorage.setItem('followerCounts', JSON.stringify(this.followerCounts));
         }
-    },
+    }
 };
 </script>
 

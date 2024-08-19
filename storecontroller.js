@@ -11,9 +11,14 @@ export default createStore({
         currentUser: JSON.parse(localStorage.getItem('user')) || { id: null, name: '', role: 'user', balance: 0 },
         likedProducts: JSON.parse(localStorage.getItem('likedProducts')) || {},
         followedShops: JSON.parse(localStorage.getItem('followedShops')) || {},
+        shopInfo: null,
+        followerCounts: JSON.parse(localStorage.getItem('followerCounts')) || {},
+        productInfo: null
     },
     getters: {
+        shopInfo: state => state.shopInfo,
         products: state => state.products,
+        productInfo: state => state.productInfo,
         cart: state => state.cart,
         history: state => state.history,
         cartItemCount: state => state.cart.reduce((count, product) => count + product.quantity, 0),
@@ -23,8 +28,20 @@ export default createStore({
         currentBalance: state => state.currentUser.balance,
         likedProducts: state => state.likedProducts,
         followedShops: state => state.followedShops,
+        followerCount: (state) => (shopId) => {
+            // console.log('Shop ID:', shopId, 'Follower Count:', state.followerCounts[shopId]);
+            return state.followerCounts[shopId] || 0;
+        },
+        isFollowed: state => shopId => !!state.followedShops[shopId]
+
     },
     mutations: {
+        setShopInfo(state, shopInfo) {
+            state.shopInfo = shopInfo;
+        },
+        setProductInfo(state, productInfo) {  
+            state.productInfo = productInfo;
+        },
         SET_PRODUCTS(state, products) {
             state.products = products;
         },
@@ -85,14 +102,42 @@ export default createStore({
             localStorage.setItem('likedProducts', JSON.stringify(state.likedProducts));
         }, TOGGLE_FOLLOW_SHOP(state, shopId) {
             if (state.followedShops[shopId]) {
-                state.followedShops[shopId] = !state.followedShops[shopId];
+                delete state.followedShops[shopId];
+                state.followerCounts[shopId] = Math.max(0, state.followerCounts[shopId] - 1);
             } else {
                 state.followedShops[shopId] = true;
+                state.followerCounts[shopId] = (state.followerCounts[shopId] || 0) + 1;
             }
             localStorage.setItem('followedShops', JSON.stringify(state.followedShops));
+            localStorage.setItem('followerCounts', JSON.stringify(state.followerCounts));
         },
     },
     actions: {
+        async fetchProducts({ commit }) {
+            try {
+                const response = await axios.get('http://localhost:8081/products');
+                commit('SET_PRODUCTS', response.data);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        }, async fetchShopInfo({ commit }, productId) {
+            try {
+                const response = await axios.get('http://localhost:8081/shop/item');
+                const shops = response.data;
+
+                // Find the shop associated with the given productId
+                const shop = shops.find(shop => shop.id == productId);
+
+                if (shop) {
+                    commit('setShopInfo', { name: shop.name, id: shop.id, seller: shop.seller,  });
+                    commit('setProductInfo', { title: shop.title });
+                } else {
+                    console.error('Shop not found');
+                }
+            } catch (error) {
+                console.error('Error fetching shop info:', error);
+            }
+        },
         async loadUsers({ commit }) {
             try {
                 const response = await axios.get('http://localhost:8081/users');
@@ -100,6 +145,9 @@ export default createStore({
             } catch (error) {
                 console.error('Error loading users:', error);
             }
+        },
+        updateShopInfo({ commit }, shopInfo) {
+            commit('setShopInfo', shopInfo);
         },
         async login({ commit }, { email, password }) {
             try {
@@ -153,7 +201,7 @@ export default createStore({
         },
         toggleLike({ commit }, productId) {
             commit('TOGGLE_LIKE', productId);
-        }, toggleFollowShop({ commit }, shopId) {  // เพิ่ม action สำหรับติดตามร้านค้า
+        }, toggleFollowShop({ commit }, shopId) {
             commit('TOGGLE_FOLLOW_SHOP', shopId);
         },
     }

@@ -5,22 +5,22 @@
                 <h3>การซื้อ</h3>
                 <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
             </div>
-            <p v-show="isVisible"><router-link to="/users/PurchaseHistory" class="custom-link">ประวัติการซื้อ</router-link></p>
+            <p v-show="isVisible"><router-link to="/users/PurchaseHistory"
+                    class="custom-link">ประวัติการซื้อ</router-link></p>
             <p v-show="isVisible"><router-link to="/users/cart" class="custom-link">ตะกร้าสินค้า</router-link></p>
             <p v-show="isVisible"><router-link to="/users/locationAdress" class="custom-link">ที่อยู่</router-link></p>
             <p v-show="isVisible"><router-link to="/users/setting" class="custom-link">ตั้งค่าการแจ้งเตือน</router-link>
             </p>
-
         </div>
-        <div class="user">
+        <div v-if="userRole === 'seller'" class="user">
             <div class="user-title" @click="toggleVisibility2">
                 <h3>การซื้อ</h3>
                 <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
             </div>
-            <p v-show="isVisible"><router-link to="/users/Business" class="custom-link">ดูผลประกอบการ</router-link></p>
-            <p v-show="isVisible"><router-link to="/users/Center" class="custom-link">ตะกร้าสินค้า</router-link></p>
-            <p v-show="isVisible"><router-link to="/users/Center" class="custom-link">ที่อยู่</router-link></p>
-            <p v-show="isVisible"><router-link to="/users/Center" class="custom-link">ตั้งค่าการแจ้งเตือน</router-link>
+            <p v-show="isVisible2"><router-link to="/users/Business" class="custom-link">ดูผลประกอบการ</router-link></p>
+            <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ตะกร้าสินค้า</router-link></p>
+            <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ที่อยู่</router-link></p>
+            <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ตั้งค่าการแจ้งเตือน</router-link>
             </p>
         </div>
         <h2 @click="logout">ออกจากระบบ</h2>
@@ -43,7 +43,10 @@ export default {
             checkbox4: false,
             isVisible: true,
             isVisible2: true,
+            userRole: '',
         };
+    }, created() {
+        this.checkUserRole();
     }, methods: {
         toggleVisibility() {
             this.isVisible = !this.isVisible;
@@ -55,6 +58,11 @@ export default {
         },
         checkbutton(checkboxName) {
             this[checkboxName] = !this[checkboxName];
+        }, checkUserRole() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.role) {
+                this.userRole = user.role;
+            }
         }, logout() {
             localStorage.removeItem('isLoggedIn');
             this.isLoggedIn = false;

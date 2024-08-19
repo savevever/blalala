@@ -55,8 +55,10 @@ export default {
     ...mapActions(['setSelectedProduct']),
     async loadProducts() {
       try {
-        const response = await axios.get('http://localhost:8081/seller/item');
+        const response = await axios.get('http://localhost:8081/shop/item');
         this.$store.commit('SET_PRODUCTS', response.data);
+        // console.log('Fetched products:', response.data);
+
       } catch (error) {
         console.error('Error fetching products:', error);
       }

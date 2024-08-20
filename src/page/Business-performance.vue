@@ -67,7 +67,6 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCoins, faTruckFast, faBook, faComments } from "@fortawesome/free-solid-svg-icons";
 import { faComments as faCommentsRegular } from "@fortawesome/free-regular-svg-icons";
 
-// Add icons to the library
 library.add(faCoins, faTruckFast, faBook, faComments, faCommentsRegular);
 export default {
 

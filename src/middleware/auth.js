@@ -13,7 +13,7 @@ const authMiddleware = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.user = await User.findByPk(decoded.id);
-        req.user.role = decoded.role; // ดึงบทบาทจาก JWT
+        req.user.role = decoded.role;
         next();
     } catch (error) {
         res.status(401).json({ message: 'Invalid token' });
@@ -23,7 +23,6 @@ const authMiddleware = async (req, res, next) => {
 const fetchProtectedData = async (req, res) => {
     try {
         const user = req.user;
-        // เพิ่มโค้ดสำหรับการเรียกข้อมูลที่ต้องการ
         res.status(200).json({ message: 'Protected data accessed', user });
     } catch (error) {
         res.status(500).json({ message: 'Error accessing protected data' });

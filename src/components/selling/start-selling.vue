@@ -14,7 +14,6 @@
                     <span class="delete-icon" @click="removeImage(index)">x</span>
                 </div>
             </div>
-
             <div class="upload-icon-container">
                 <font-awesome-icon :icon="['fas', 'image']" @click="triggerFileInput('product')" class="upload-icon" />
             </div>
@@ -31,6 +30,22 @@
             <span>ชื่อสินค้า</span>
             <textarea v-model="nameProduct" placeholder="ชื่อสินค้า"
                 @input="adjustTextareaHeight($event.target)"></textarea>
+        </div>
+        <!-- ตัวอย่างรูปภาพสินค้า -->
+        <div class="example-images-container">
+            <span>ตัวอย่างรูปภาพสินค้า</span>
+            <div class="images-list" id="container-example-images">
+                <div v-for="(image, index) in imageList" :key="index" class="image-example-wrapper">
+                    <img :src="image.src" :alt="`Product Image ${index + 1}`" class="uploaded-image" />
+                    <span class="delete-example-icon" @click="removeExampleImage(index)">x</span>
+                </div>
+            </div>
+            <!-- ปุ่มอัปโหลดรูปภาพสำหรับตัวอย่างรูปภาพสินค้า -->
+            <div class="upload-icon-container">
+                <font-awesome-icon :icon="['fas', 'image']" @click="triggerFileInput('example')" class="upload-icon" />
+            </div>
+            <input type="file" ref="exampleImageInput" class="image-upload" accept="image/*"
+                @change="previewImage($event, 'imageList')" multiple style="display: none" />
         </div>
 
         <div class="category-name">
@@ -51,37 +66,33 @@
                 <input type="text" id="other-category" v-model="otherCategory" />
             </div>
         </div>
-
-        <div class="details">
-            <span>รายละเอียดสินค้า</span>
-            <textarea v-model="productDetails" placeholder="รายละเอียดต่างๆ ของสินค้า"
-                @input="adjustTextareaHeight($event.target)"></textarea>
+        <div class="price-number-container">
+            <div class="price-input">
+                <span>ราคา</span>
+                <input v-model="price" type="number" placeholder="ระบุราคา" />
+            </div>
+            <div class="number-products-input">
+                <span>จำนวนสินค้า</span>
+                <input v-model="numberProducts" type="number" placeholder="ระบุจำนวนสินค้า" />
+            </div>
         </div>
-
         <div class="input-container">
             <span>ประเภทสินค้า</span>
             <div v-for="(set, index) in productTypes" :key="index" class="input-group">
                 <div class="input-with-icon">
-                    <input v-model="set.productType1" type="text" class="product-type" placeholder="ประเภท เช่น สี" />
-                    <input v-model="set.inputProductType1" type="text" class="input-product-type"
-                        placeholder="ฟ้า/ชมพู/ส้ม/เขียว เป็นต้น" />
+                    <input v-model="set.productType1" type="text" class="product-type"
+                        placeholder="ประเภท เช่น สี ขนาด" />
+                    <!-- <input v-model="set.productType1" type="text" class="product-type" placeholder="สีเขียว" /> -->
+                    <div v-for="(input, inputIndex) in set.inputProductType1" :key="inputIndex">
+                        <input v-model="set.inputProductType1[inputIndex]" type="text" class="input-product-type"
+                            placeholder="เพิ่มเติม" />
+                    </div>
+                    <span class="add-input-icon" @click="addInputField(index)">
+                        <i class="fa-solid fa-circle-plus"></i>
+                    </span>
                 </div>
-                <div class="input-with-icon">
-                    <input v-model="set.productType2" type="text" class="product-type" placeholder="ประเภท เช่น ขนาด" />
-                    <input v-model="set.inputProductType2" type="text" class="input-product-type"
-                        placeholder="25 ซม./30 มม./5 นิ้ว/1 เมตร เป็นต้น" />
-                </div>
-                <div class="input-price">
-                    <input v-model="set.price" type="number" class="price" placeholder="ราคาสินค้า" />
-                </div>
-                <div class="input-number-products">
-                    <input v-model="set.numberProducts" type="number" class="number-products"
-                        placeholder="จำนวนสินค้า" />
-                </div>
-                <span class="delete-set-icon" @click="deleteInputSet(index)">
-                    <i class="fa-solid fa-minus" id="delete-set"></i>
-                </span>
             </div>
+
             <div style="text-align: center; margin-top: 20px">
                 <a class="add-set-icon" @click="addInputSet()">
                     <i class="fa-solid fa-circle-plus" id="add-set"></i>
@@ -89,6 +100,11 @@
             </div>
         </div>
 
+        <div class="details">
+            <span>รายละเอียดสินค้า</span>
+            <textarea v-model="productDetails" placeholder="รายละเอียดต่างๆ ของสินค้า"
+                @input="adjustTextareaHeight($event.target)"></textarea>
+        </div>
         <div>
             <p id="form-selling1-error" class="error-message" v-show="formError">
                 กรุณากรอกข้อมูลให้ครบถ้วน
@@ -99,7 +115,9 @@
             <router-link to="/">
                 <button type="button" class="btn-back">ยกเลิก</button>
             </router-link>
-            <button type="button" class="btn" @click="saveProductData">ถัดไป</button>
+            <!-- <router-link :to="{ path: '/store/storepage', query: { productId: product.id } }"> -->
+                <button type="button" class="btn" @click="saveProductData">ถัดไป</button>
+            <!-- </router-link> -->
         </div>
     </div>
 </template>
@@ -111,29 +129,38 @@ export default {
     data() {
         return {
             images: [],
+            imageList: [],
             nextImageId: 0,
             photoProductImagesError: false,
             nameProduct: "",
             category: "",
             otherCategory: "",
             productDetails: "",
+
             productTypes: [
                 {
                     productType1: "",
-                    inputProductType1: "",
+                    inputProductType1: [],
                     productType2: "",
-                    inputProductType2: "",
-                    price: "",
-                    numberProducts: "",
+                    inputProductType2: [],
+
                 },
             ],
+            price: "",
+            numberProducts: "",
             formError: false,
         };
     },
     methods: {
+        addInputField(index) {
+            this.productTypes[index].inputProductType1.push("");
+            console.log("zzzzzzzzzzzz");
+
+        },
         triggerFileInput(inputName) {
             const refMap = {
-                product: "productImageInput",
+                product: 'productImageInput',
+                example: 'exampleImageInput',
             };
             const refName = refMap[inputName];
             const input = this.$refs[refName];
@@ -141,8 +168,9 @@ export default {
                 input.click();
             }
         },
-        previewImage(event) {
+        previewImage(event, type) {
             const files = event.target.files; // Get the selected files
+            const targetArray = type === 'images' ? this.images : this.imageList;
             Array.from(files).forEach((file) => {
                 if (file) {
                     const reader = new FileReader();
@@ -175,10 +203,9 @@ export default {
 
                             // แปลง Canvas กลับไปเป็น Data URL
                             const dataUrl = canvas.toDataURL('image/jpeg', 0.75); // quality=0.75
-
                             // เพิ่มรูปภาพที่ถูกปรับขนาดลงในอาร์เรย์ images
-                            this.images.push({
-                                id: `image${this.nextImageId++}`, // Increment and assign ID
+                            targetArray.push({
+                                id: type === 'images' ? `image${this.nextImageId++}` : `example${this.nextImageId++}`,
                                 src: dataUrl,
                             });
                         };
@@ -190,16 +217,19 @@ export default {
             event.target.value = "";
         },
 
-
+        removeExampleImage(index) {
+            this.imageList.splice(index, 1);
+        },
         removeImage(index) {
             this.images.splice(index, 1); // Remove image from list
         },
         addInputSet() {
             this.productTypes.push({
                 productType1: "",
-                inputProductType1: "",
+                inputProductType1: [],
                 productType2: "",
-                inputProductType2: "",
+                inputProductType2: [],
+                imageList: [],
                 price: "",
                 numberProducts: "",
             });
@@ -218,24 +248,29 @@ export default {
         },
         prepareData() {
             return {
-                images: this.images.map(img => ({
+                images: JSON.stringify(this.images.map(img => ({
                     id: img.id,
                     src: img.src
-                })),
+                }))),
                 nameProduct: this.nameProduct,
                 category: this.category,
                 otherCategory: this.otherCategory,
                 productDetails: this.productDetails,
-                productTypes: this.productTypes.map(pt => ({
+                price: this.price,
+                imageList: JSON.stringify(this.imageList.map(img => ({
+                    id: img.id,
+                    src: img.src
+                }))),
+                numberProducts: this.numberProducts,
+                productTypes: JSON.stringify(this.productTypes.map(pt => ({
                     productType1: pt.productType1,
                     inputProductType1: pt.inputProductType1,
                     productType2: pt.productType2,
                     inputProductType2: pt.inputProductType2,
-                    price: pt.price,
-                    numberProducts: pt.numberProducts,
-                })),
+                }))),
             };
-        },
+        }
+        ,
 
         async saveProductData() {
             if (this.images.length === 0) {
@@ -246,6 +281,7 @@ export default {
             }
 
             const formData = this.prepareData();
+            console.log('Prepared data for API request:', formData);
 
             try {
                 const response = await axios.post('http://localhost:8081/selling/save-product-data', formData);
@@ -273,11 +309,11 @@ export default {
                     inputProductType1: "",
                     productType2: "",
                     inputProductType2: "",
-                    price: "",
-                    numberProducts: "",
                 },
             ];
-            this.formError = false;
+            this.price = "",
+                this.numberProducts = "",
+                this.formError = false;
             this.photoProductImagesError = false;
         },
     }
@@ -305,6 +341,8 @@ export default {
 .category-name,
 .input-container,
 .details,
+.price-number-container,
+.example-images-container,
 .name-product {
     display: flex;
     align-items: center;
@@ -363,9 +401,12 @@ textarea {
 .input-group {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: 10px;
     width: 100%;
+}
+
+.input-group input {
+    width: 140px;
 }
 
 .input-with-icon,
@@ -567,5 +608,58 @@ textarea {
 
 .upload-icon:hover {
     color: #776451;
+}
+
+.price-number-container span {
+    font-size: 19px;
+}
+
+.price-number-container input {
+    height: 30px;
+    font-size: 15px;
+}
+
+.example-images-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.images-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    /* จัดกลางรูปภาพในแนวนอน */
+    align-items: center;
+    /* จัดกลางรูปภาพในแนวตั้ง */
+    width: 100%;
+}
+
+.image-example-wrapper {
+    position: relative;
+    width: 250px;
+    /* กำหนดความกว้างของรูปภาพ */
+    height: 150px;
+    /* กำหนดความสูงของรูปภาพ */
+    overflow: hidden;
+}
+
+.uploaded-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* ปรับขนาดรูปภาพให้พอดีกับขนาดที่กำหนด */
+}
+
+.delete-example-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    padding: 5px;
 }
 </style>

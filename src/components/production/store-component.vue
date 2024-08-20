@@ -8,7 +8,7 @@
                     </router-link>
                 </div>
                 <div id="storeLeftTXT">
-                    <p id="namestore">{{ shopInfo ? shopInfo.name : 'Loading...' }}</p>
+                    <p id="namestore">{{ shopName }}</p>
                     <p>Active 4 นาที ที่ผ่านมา</p>
                     <div id="storeLeftButton">
                         <button @click="handleToggleFollow">
@@ -17,7 +17,7 @@
                         </button>
                         <button>
                             <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
-                            <p>เเชด</p>
+                            <p>แชท</p>
                         </button>
                         <button>
                             <font-awesome-icon :icon="['fas', 'house']" class="font-awesome" />
@@ -50,38 +50,26 @@ export default {
     components: {
         FontAwesomeIcon,
     },
-    props: {
-        // seller: {
-        //     type: String,
-        //     required: true
-        // }
-    },
     computed: {
         ...mapState(['shopInfo']),
         ...mapGetters(['isFollowed', 'followerCount']),
-        shopId() {
-            return this.shopInfo ? this.shopInfo.id : null;
+        shopName() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            return user ? user.name : 'Loading...';
         }
     },
     mounted() {
         const productId = new URLSearchParams(window.location.search).get('productId');
         if (productId) {
-            this.fetchShopInfo(productId);
-
+            this.fetchProducts(productId);
         }
     },
     methods: {
-        ...mapActions(['fetchShopInfo', 'toggleFollowShop']),
-        handleToggleFollow() {
-            if (this.shopId) {
-                // console.log('Shop ID before toggle:', this.shopId);
-                this.toggleFollowShop(this.shopId);
-                // console.log('Shop ID after toggle:', this.shopId);
-            }
-        }
+        ...mapActions(['fetchProducts', ]),
     }
 };
 </script>
+
 
 <style scoped>
 .container {

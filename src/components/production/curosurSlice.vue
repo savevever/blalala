@@ -1,12 +1,9 @@
 <template>
     <div class="swiper-container">         
         <div class="swiper-wrapper">
-            <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
-            <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
-            <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
-            <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
-            <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
-            <div class="swiper-slide"><img src="../../assets/1.png" alt=""></div>
+            <div class="swiper-slide" v-for="image in imageList" :key="image.id">
+                <img :src="image.src" alt="">
+            </div>
         </div>
         <div class="swiper-button-prev"></div>
         <div class="swiper-button-next"></div>
@@ -15,13 +12,43 @@
 
 <script>
 import Swiper from 'swiper/bundle';
-// import { Swiper, SwiperSlide } from 'swiper/vue';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import axios from 'axios';
+
 export default {
-    mounted() {
-        // สร้าง Swiper instance เมื่อ Vue component ถูกติดตั้ง
+    data() {
+        return {
+            imageList: [] // ใช้เพื่อเก็บภาพจาก API
+        };
+    },
+    methods: {
+        async fetchProductDetails(productId) {
+            try {
+                const response = await axios.get(`http://localhost:8081/selling/productss`);
+                if (response.data && response.data.length > 0) {
+                    const product = response.data.find(product => product.id == productId);
+                    if (product) {
+                        this.imageList = product.imageList;
+                        console.log(this.imageList);
+                    } else {
+                        console.log('ไม่พบข้อมูลสินค้าที่มี ID นี้');
+                    }
+                } else {
+                    console.log('ไม่พบข้อมูลสินค้า');
+                }
+            } catch (error) {
+                console.error('ข้อผิดพลาดในการดึงข้อมูล:', error);
+            }
+        }
+    },
+    async mounted() {
+        const productId = new URLSearchParams(window.location.search).get('productId');
+        if (productId) {
+            await this.fetchProductDetails(productId);
+        }
+        // Initialize Swiper after images are loaded
         const swiper = new Swiper('.swiper-container', {
             slidesPerView: 3,
             direction: getDirection(),
@@ -42,9 +69,10 @@ export default {
 
             return direction;
         }
-    },
+    }
 };
 </script>
+
 
 <style>
 .swiper-container {

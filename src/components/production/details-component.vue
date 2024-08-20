@@ -2,28 +2,53 @@
     <div id="container">
         <div id="detail-container">
             <h1>รายละเอียดสินค้า</h1>
-            <p>M&T เป็นเสื้อผ้ามัดย้อมสีธรรมชาติจากบ้านโคกขาม ตำบลโคกขาม และตำบลท่าฉลอม จังหวัดสมุทรสาคร
-                ไม่เป็นอันตรายต่อร่างกาย ไม่ว่าเด็กหรือผู้ใหญ่ก็สามารถใส่ผลิตภัณฑ์มัดย้อมจากที่นี่ได้
-                เพราะวัตถุดิบทำมาจากธรรมชาติ
-
-                ขนาดไซส์เสื้อ (รอบอก, ความยาว)
-                - SS (34, 25.5)
-                - S (36, 26.5)
-                - M (38, 27.5)
-                - L (40, 28.5)
-                - XL (42, 29.5)
-                - XXL (44, 30.5)
-
-                รบกวนวัดไซส์ก่อนสั่งซื้อ เนื่องจากทางร้านไม่รับเปลี่ยนไซส
-
-                ตัดรอบ 09.00 น. ของทุกวัน หยุดทุกวันอาทิตย์</p>
+            <p>{{ productDetails }}</p>
         </div>
-
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
     </div>
 </template>
 <script>
+import axios from 'axios';
 
+export default {
+    data() {
+        return {
+            productDetails: '' 
+        };
+    },
+    methods: {
+        async fetchProductDetails(productId) {
+            try {
+                const response = await axios.get(`http://localhost:8081/selling/productss`);
+                if (response.data && response.data.length > 0) {
+                    const product = response.data.find(product => product.id == productId);
+                    if (product) {
+                        this.productDetails = product.productDetails;
+                        console.log(this.productDetails);
+                    } else {
+                        console.log('ไม่พบข้อมูลสินค้าที่มี ID นี้');
+                    }
+                } else {
+                    console.log('ไม่พบข้อมูลสินค้า');
+                }
+            } catch (error) {
+                console.error('ข้อผิดพลาดในการดึงข้อมูล:', error);
+            }
+        }
+    },
+    async mounted() {
+        const productId = new URLSearchParams(window.location.search).get('productId');
+        if (productId) {
+            this.fetchProductDetails(productId);
+        }
+    }
+};
 </script>
+
+
+
+
 <style scoped>
 #container {
     display: flex;

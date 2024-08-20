@@ -120,24 +120,32 @@ export default createStore({
             } catch (error) {
                 console.error('Error fetching products:', error);
             }
-        }, async fetchShopInfo({ commit }, productId) {
+        }, 
+        async fetchShopInfo({ commit }, productId) {
             try {
-                const response = await axios.get('http://localhost:8081/shop/item');
-                const shops = response.data;
-
-                // Find the shop associated with the given productId
-                const shop = shops.find(shop => shop.id == productId);
-
-                if (shop) {
-                    commit('setShopInfo', { name: shop.name, id: shop.id, seller: shop.seller,  });
-                    commit('setProductInfo', { title: shop.title });
+                const response = await axios.get('http://localhost:8081/products');
+                const products = response.data;
+        
+                const product = products.find(product => product.id == productId);
+        
+                if (product) {
+                    const user = JSON.parse(localStorage.getItem('user'));
+                    const shopInfo = {
+                        id: product.shopId,
+                        name: user.name || 'Unknown',
+                        seller: user.name || 'Unknown'
+                    };
+        
+                    commit('setShopInfo', shopInfo);
                 } else {
-                    console.error('Shop not found');
+                    console.error('Product not found');
                 }
             } catch (error) {
                 console.error('Error fetching shop info:', error);
             }
         },
+        
+        
         async loadUsers({ commit }) {
             try {
                 const response = await axios.get('http://localhost:8081/users');

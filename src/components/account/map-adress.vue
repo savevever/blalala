@@ -33,7 +33,6 @@ export default {
         placeholder: document.getElementById('map')
       });
 
-      // ตั้งค่าขอบเขตแผนที่ให้ครอบคลุมประเทศไทย
       this.map.bound({
         minLon: 97.345,
         minLat: 5.625,
@@ -67,10 +66,8 @@ export default {
         const marker = new window.longdo.Marker({ lon, lat });
         this.map.Overlays.add(marker);
 
-        // เก็บ marker ล่าสุดไว้ใน array
         this.markers = [marker];
 
-        // เลื่อนไปที่ตำแหน่งปัจจุบัน
         this.map.location({ lon, lat }, true);
       }
     }

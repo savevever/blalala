@@ -84,7 +84,6 @@ export default {
             this.shopNameError = false;
             this.phoneError = false;
 
-            // Validate shopName
             if (shopName === '') {
                 this.$refs.shopName.classList.add('input-error');
                 this.shopNameError = true;
@@ -93,7 +92,6 @@ export default {
                 this.$refs.shopName.classList.remove('input-error');
             }
 
-            // Validate phoneNumber
             if (phoneNumber === '' || phoneNumber.length !== 10 || isNaN(phoneNumber)) {
                 this.$refs.phoneNumber.classList.add('input-error');
                 this.phoneError = true;

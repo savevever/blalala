@@ -47,15 +47,17 @@ router.delete('/delete-all', async (req, res) => {
         res.status(500).json({ message: 'Failed to delete data' });
     }
 });
-
 router.post('/save-product-data', async (req, res) => {
+    console.log('Received request body:', req.body); // เพิ่มการล็อกที่นี่
     try {
         const productData = {
             ...req.body,
-            images: JSON.stringify(req.body.images), // แปลงอาร์เรย์ 'images' เป็น JSON string
-            productTypes: JSON.stringify(req.body.productTypes), // แปลงอาร์เรย์ 'productTypes' เป็น JSON string
+            images: JSON.parse(req.body.images), // แปลง JSON string กลับเป็นอาร์เรย์
+            productTypes: JSON.parse(req.body.productTypes), // แปลง JSON string กลับเป็นอาร์เรย์
+            imageList: JSON.parse(req.body.imageList), // แปลง JSON string กลับเป็นอาร์เรย์
         };
-        console.log('Received product data:', productData); // เพิ่มบรรทัดนี้เพื่อตรวจสอบข้อมูลที่ได้รับ
+
+        console.log('Product data to be saved:', productData); // ตรวจสอบข้อมูลที่ถูกแปลง
 
         // บันทึกข้อมูลลงในฐานข้อมูล PostgreSQL
         await ProductTest.create(productData);
@@ -66,6 +68,7 @@ router.post('/save-product-data', async (req, res) => {
         res.status(500).json({ message: 'ไม่สามารถบันทึกข้อมูลได้' });
     }
 });
+
 router.get('/productss', async (req, res) => {
     try {
         const products = await ProductTest.findAll();
@@ -75,6 +78,7 @@ router.get('/productss', async (req, res) => {
         res.status(500).json({ message: 'ไม่สามารถดึงข้อมูลได้' });
     }
 });
+
 router.get('/product/latest', async (req, res) => {
     try {
         // ดึงข้อมูลผลิตภัณฑ์ที่มี id สูงสุด (หรือข้อมูลล่าสุด)
@@ -91,7 +95,20 @@ router.get('/product/latest', async (req, res) => {
         res.status(500).json({ message: 'ไม่สามารถดึงข้อมูลได้' });
     }
 });
+router.delete('/Delateproducts', async (req, res) => {
+    try {
+        // ลบข้อมูลทั้งหมดจากตาราง ProductTest
+        await ProductTest.destroy({
+            where: {}, // ไม่มีเงื่อนไข where หมายถึงลบข้อมูลทั้งหมด
+            truncate: true // ใช้ truncate เพื่อลบข้อมูลทั้งหมดและรีเซ็ตการนับ ID
+        });
 
+        res.status(200).json({ message: 'ลบข้อมูลทั้งหมดสำเร็จ' });
+    } catch (err) {
+        console.error('ข้อผิดพลาดในการลบข้อมูลทั้งหมดจาก PostgreSQL:', err);
+        res.status(500).json({ message: 'ไม่สามารถลบข้อมูลทั้งหมดได้' });
+    }
+});
 router.delete('/products/:id', async (req, res) => {
     try {
         const productId = req.params.id;

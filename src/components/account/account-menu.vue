@@ -18,10 +18,10 @@
                 <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
             </div>
             <p v-show="isVisible2"><router-link to="/users/Business" class="custom-link">ดูผลประกอบการ</router-link></p>
-            <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ตะกร้าสินค้า</router-link></p>
-            <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ที่อยู่</router-link></p>
-            <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ตั้งค่าการแจ้งเตือน</router-link>
-            </p>
+            <p v-show="isVisible2"><router-link to="/selling/StartSelling" class="custom-link">วางขายสินค้า</router-link></p>
+            <!-- <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ที่อยู่</router-link></p>
+            <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ตั้งค่าการแจ้งเตือน</router-link> -->
+            <!-- </p> -->
         </div>
         <h2 @click="logout">ออกจากระบบ</h2>
     </div>

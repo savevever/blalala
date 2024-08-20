@@ -16,7 +16,7 @@ const sellingRoutes = require('./src/routes/selling');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-// Middleware
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -35,7 +35,7 @@ async function initializeDatabase() {
     try {
         await sequelize.authenticate();
         console.log('Connection has been established successfully.');
-        await sequelize.sync({ force: true });
+        await sequelize.sync({ alter: true });
         initializePassport(passport, sequelize.models.User);
     } catch (error) {
         console.error('Unable to connect to the database:', error);
@@ -64,3 +64,5 @@ server.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);
     await initializeDatabase();
 });
+server.js
+

@@ -1,14 +1,15 @@
 <template>
-    <div id="container">
-        <div id="containerProductItem" v-if="product">
+    <div id="container" v-if="product">
+        <div class="containerProductItem">
             <div id="ProductItem">
                 <div id="ProductItemHead">
                     <div id="ProductItemImg">
-                        <img :src="product.imageSource || '../../assets/default.png'" id="Image" />
+                        <!-- แสดงภาพแรกจาก images -->
+                        <img :src="product.images[0]?.src || '../../assets/default.png'" id="Image" />
                     </div>
                     <div id="ProductItemTxt">
                         <div>
-                            <h2>{{ product.title || 'Loading...' }}</h2>
+                            <h2>{{ product.nameProduct || 'Loading...' }}</h2>
                         </div>
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
@@ -18,11 +19,15 @@
                         </div>
                         <p class="price">฿{{ product.price || 'Loading...' }}</p>
                         <div class="option">
-                            <p>{{ product.option || 'Loading...' }}</p>
-                            <button v-for="(category, index) in product.Category || []" :key="index"
-                                @click="selectedButton = index" :class="{ 'pink': selectedButton === index }">
-                                {{ category }}
-                            </button>
+                            <div v-for="(type, index) in product.productTypes" :key="index" class="product-type-group">
+                                <p>{{ type.productType1 }}</p>
+                                <div class="product-type-buttons">
+                                    <button v-for="(option, optionIndex) in type.inputProductType1" :key="optionIndex"
+                                        @click="handleProductTypeClick(option)">
+                                        {{ option }}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="quantity">
                             <p>จำนวน</p>
@@ -31,7 +36,7 @@
                                 <span>{{ count }}</span>
                                 <button @click="increment">+</button>
                             </div>
-                            <p>มีสินค้าทั้งหมด:<span>{{ product.stockCount || 0 }}</span></p>
+                            <p>มีสินค้าทั้งหมด: <span>{{ product.numberProducts || 0 }}</span></p>
                         </div>
                     </div>
                 </div>
@@ -41,25 +46,29 @@
                     <curosurSlice></curosurSlice>
                 </div>
                 <div id="ProductItemButton">
-                    <router-link to="/users/cart"><button @click="addToCartClicked" class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
-                    <router-link to="/users/PurchaseHistory"><button class="btn2" @click="addToHistoryClicked">ซื้อสินค้าเลย</button></router-link>
+                    <router-link to="/users/cart">
+                        <button @click="addToCartClicked" class="btn1">เพิ่มสินค้าลงในตะกร้า</button>
+                    </router-link>
+                    <router-link to="/users/PurchaseHistory">
+                        <button class="btn2" @click="addToHistoryClicked">ซื้อสินค้าเลย</button>
+                    </router-link>
                 </div>
             </div>
         </div>
-        <div v-else>
-            <p>ไม่พบข้อมูลสินค้า</p>
-        </div>
+    </div>
+
+    <div v-else>
+        <p>ไม่พบข้อมูลสินค้า</p>
     </div>
 </template>
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
-import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
 import curosurSlice from '../production/curosurSlice.vue';
 import axios from 'axios';
 
-library.add(faHeart);
+(faHeart);
 
 export default {
     data() {
@@ -81,18 +90,19 @@ export default {
     components: {
         curosurSlice
     },
+
     methods: {
         ...mapActions(['addToCart', 'addToHistory', 'toggleLike']),
         addToCartClicked() {
             if (this.product) {
                 const product = {
                     id: this.product.id,
-                    title: this.product.title,
+                    title: this.product.nameProduct,
                     price: this.product.price,
                     quantity: this.count,
-                    imageSource: this.product.imageSource,
-                    option: this.product.option,
-                    Category: this.product.Category,
+                    imageSource: this.product.images[0]?.src,
+                    option: this.product.category,
+                    productTypes: this.product.productTypes,
                 };
                 this.addToCart(product);
             }
@@ -101,10 +111,10 @@ export default {
             if (this.product) {
                 const product = {
                     id: this.product.id,
-                    title: this.product.title,
+                    title: this.product.nameProduct,
                     price: this.product.price,
                     quantity: this.count,
-                    imageSource: this.product.imageSource,
+                    imageSource: this.product.images[0]?.src,
                 };
                 this.addToHistory(product);
             }
@@ -122,29 +132,31 @@ export default {
                 this.count--;
             }
         },
+        // handleProductTypeClick(option) {
+        //     console.log('Clicked option:', option);
+        // }
     },
     created() {
         axios.get('http://localhost:8081/selling/product/latest')
             .then(response => {
                 if (response.data) {
-                    const productData = response.data;
-                    productData.images = JSON.parse(productData.images); // Parse images
-                    productData.productTypes = JSON.parse(productData.productTypes); // Parse productTypes
-
-                    this.product = productData;
-
-                    // Log ข้อมูลสินค้าในคอนโซล
-                    console.log('ข้อมูลสินค้าที่ได้รับ:', this.product);
+                    this.product = response.data;
+                    // Log ข้อมูลสินค้าที่ได้รับ
+                    // console.log('ข้อมูลสินค้า:', this.product);
                 } else {
-                    console.error('รูปแบบข้อมูลที่ได้รับไม่ถูกต้อง:', response.data);
+                    console.error('ไม่พบข้อมูลผลิตภัณฑ์:', response.data);
                 }
             })
             .catch(error => {
-                console.error('เกิดข้อผิดพลาดในการดึงข้อมูลสินค้า:', error);
+                console.error('ข้อผิดพลาดในการดึงข้อมูลสินค้า:', error);
             });
     },
 };
 </script>
+
+
+
+
 <style scoped>
 #Image {
     width: 450px;
@@ -215,6 +227,12 @@ router-link {
     margin: 0 10px 0 10px;
 }
 
+.product-type-group {
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+}
+
 #container {
     /* height: 580px; */
     display: flex;
@@ -233,7 +251,7 @@ router-link {
     font-size: 25px;
 }
 
-#containerProductItem {
+.containerProductItem {
     display: flex;
     width: 1300px;
     flex-direction: column;

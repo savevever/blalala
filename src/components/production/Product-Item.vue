@@ -4,11 +4,12 @@
             <div id="ProductItem">
                 <div id="ProductItemHead">
                     <div id="ProductItemImg">
-                        <img :src="product && product.imageSource ? product.imageSource : '../../assets/default.png'" id="Image" />
+                        <img :src="product && product.images && product.images.length > 0 ? product.images[0].src : '../../assets/default.png'"
+                            id="Image" />
                     </div>
                     <div id="ProductItemTxt">
                         <div>
-                            <h2>{{ product ? product.title : 'Loading...' }}</h2>
+                            <h2>{{ product ? product.nameProduct : 'Loading...' }}</h2>
                         </div>
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
@@ -41,8 +42,10 @@
                     <curosurSlice></curosurSlice>
                 </div>
                 <div id="ProductItemButton">
-                    <router-link to="/users/cart"><button @click="addToCartClicked" class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
-                    <router-link to="/users/PurchaseHistory"><button class="btn2" @click="addToHistoryClicked">ซื้อสินค้าเลย</button></router-link>
+                    <router-link to="/users/cart"><button @click="addToCartClicked"
+                            class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
+                    <router-link to="/users/PurchaseHistory"><button class="btn2"
+                            @click="addToHistoryClicked">ซื้อสินค้าเลย</button></router-link>
                 </div>
             </div>
         </div>
@@ -50,6 +53,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import { mapActions, mapGetters } from 'vuex';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
@@ -80,15 +84,34 @@ export default {
         curosurSlice
     },
     methods: {
-        ...mapActions(['addToCart', 'addToHistory', 'toggleLike']),
+        ...mapActions(['addToCart', 'addToHistory', 'toggleLike', 'setSelectedProduct']),
+        async fetchProductDetails(productId) {
+            try {
+                const response = await axios.get(`http://localhost:8081/selling/productss`);
+                if (response.data && response.data.length > 0) {
+                    const product = response.data.find(product => product.id == productId);
+                    if (product) {
+                        this.setSelectedProduct(product); // อัพเดท Vuex store ด้วยข้อมูลสินค้า
+                        console.log('Product:', product); // ตรวจสอบข้อมูลที่ส่งไป
+
+                    } else {
+                        console.log('ไม่พบข้อมูลสินค้าที่มี ID นี้');
+                    }
+                } else {
+                    console.log('ไม่พบข้อมูลสินค้า');
+                }
+            } catch (error) {
+                console.error('ข้อผิดพลาดในการดึงข้อมูล:', error);
+            }
+        },
         addToCartClicked() {
             if (this.product) {
                 const product = {
                     id: this.product.id,
-                    title: this.product.title,
+                    nameProduct: this.product.nameProduct,
                     price: this.product.price,
                     quantity: this.count,
-                    imageSource: this.product.imageSource,
+                    imageSource: this.product.images && this.product.images.length > 0 ? this.product.images[0].src : '../../assets/default.png',
                     option: this.product.option,
                     Category: this.product.Category,
                 };
@@ -99,10 +122,12 @@ export default {
             if (this.product) {
                 const product = {
                     id: this.product.id,
-                    title: this.product.title,
+                    nameProduct: this.product.nameProduct,
                     price: this.product.price,
                     quantity: this.count,
-                    imageSource: this.product.imageSource,
+                    imageSource: this.product.images && this.product.images.length > 0 ? this.product.images[0].src : '../../assets/default.png',
+                    option: this.product.option,
+                    Category: this.product.Category,
                 };
                 this.addToHistory(product);
             }
@@ -121,8 +146,15 @@ export default {
             }
         },
     },
+    async mounted() {
+        const productId = new URLSearchParams(window.location.search).get('productId');
+        if (productId) {
+            await this.fetchProductDetails(productId);
+        }
+    }
 };
 </script>
+
 
 <style scoped>
 #Image {

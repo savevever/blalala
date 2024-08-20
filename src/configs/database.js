@@ -54,7 +54,7 @@ const Selling = sequelize.define('Selling', {
     firstname: { type: DataTypes.STRING, allowNull: true },
     lastname: { type: DataTypes.STRING, allowNull: true },
     idCardNumber: { type: DataTypes.STRING, allowNull: true },
-    birthday: { type:  DataTypes.DATEONLY, allowNull: true },
+    birthday: { type: DataTypes.DATEONLY, allowNull: true },
     province: { type: DataTypes.STRING, allowNull: true },
     amphoe: { type: DataTypes.STRING, allowNull: true },
     district: { type: DataTypes.STRING, allowNull: true },
@@ -77,27 +77,36 @@ const Selling = sequelize.define('Selling', {
 });
 
 const ProductTest = sequelize.define('ProductTest', {
-    id: { 
-        type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true 
+    id: {
+        type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true
     },
-    images: { 
-        type: DataTypes.JSONB, allowNull: false 
+    images: {
+        type: DataTypes.JSONB, allowNull: false
     },
-    nameProduct: { 
-        type: DataTypes.STRING, allowNull: false 
+    nameProduct: {
+        type: DataTypes.STRING, allowNull: false
     },
-    category: { 
-        type: DataTypes.STRING, allowNull: true 
+    category: {
+        type: DataTypes.STRING, allowNull: true
     },
-    otherCategory: { 
-        type: DataTypes.STRING, allowNull: true 
+    otherCategory: {
+        type: DataTypes.STRING, allowNull: true
     },
-    productDetails: { 
-        type: DataTypes.TEXT, allowNull: true 
+    productDetails: {
+        type: DataTypes.TEXT, allowNull: true
     },
-    productTypes: { 
-        type: DataTypes.JSONB, allowNull: true 
+    productTypes: {
+        type: DataTypes.JSONB, allowNull: true
     },
-
+    price: {
+        type: DataTypes.FLOAT, allowNull: true
+    },
+    numberProducts: {
+        type: DataTypes.INTEGER, allowNull: true
+    },
+    imageList: {
+        type: DataTypes.JSONB,  
+        allowNull: false,
+    },
 });
-module.exports = { sequelize, User, Product, Shop, Selling,ProductTest };
+module.exports = { sequelize, User, Product, Shop, Selling, ProductTest };

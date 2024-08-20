@@ -54,7 +54,6 @@ export default {
     },
   },
   created() {
-    // เริ่มต้นแสดง "ชุมชน" เมื่อคอมโพเนนต์ถูกสร้าง
     this.showCommunityButtons();
   },
 };

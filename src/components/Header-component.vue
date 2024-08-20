@@ -69,7 +69,7 @@ export default {
             console.log('User data:', user);
             if (user) {
                 this.userName = user.name;
-                console.log('User name:', this.userName);  // ตรวจสอบชื่อผู้ใช้ที่ดึงมา
+                console.log('User name:', this.userName);  
             }
         }, logout() {
             localStorage.removeItem('token');

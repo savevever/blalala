@@ -9,8 +9,9 @@
                         <div class="items">
                             <input type="checkbox" v-model="product.checkbox" class="checked">
                             <img :src="product.imageSource" alt="" style="width: 100px; height: 100px;">
+                            
                             <div class="item-1">
-                                <p>{{ product.title }}</p>
+                                <p>{{ product.nameProduct }}</p>
                                 <p>ตัวเลือกสิ้นค้า:สีน้ำตาล</p>
                             </div>
                             <div class="item-2">

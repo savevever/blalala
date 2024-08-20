@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Product } = require('../configs/database');
 
-router.post('/', async (req, res) => {
+router.post('/createGraph', async (req, res) => {
     const { id, name, price, stock, totalSales, numberOfOrders, itemsSold, cogs, shippingCosts, day, month, year } = req.body;
     try {
         const newProduct = await Product.create({
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.get('/', async (req, res) => {
+router.get('/getGraph', async (req, res) => {
     try {
         const products = await Product.findAll();
         res.json(products);
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.delete('/', async (req, res) => {
+router.delete('/delGraph', async (req, res) => {
     try {
         await Product.destroy({ where: {} });
         res.status(200).send('All products have been deleted.');

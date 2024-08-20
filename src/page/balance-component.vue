@@ -12,7 +12,7 @@ import { mapGetters } from 'vuex';
 export default {
     computed: {
         ...mapGetters({
-            user: (state) => state.user(1) // สมมุติว่าใช้ id 1
+            user: (state) => state.user(1) 
         })
     }
 };

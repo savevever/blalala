@@ -5,11 +5,11 @@
         <div class="products-items">
           <div @click="selectProduct(product)">
             <router-link :to="{ path: '/users/production', query: { productId: product.id } }">
-              <img :src="product.imageSource" />
+              <img :src="product.images[0].src" />
             </router-link>
           </div>
           <div class="products-item">
-            <p class="products-title">{{ product.title }}</p>
+            <p class="products-title">{{ product.nameProduct }}</p>
             <div class="price-soldout">
               <p class="price">{{ product.price }}</p>
               <p class="sold-out">ขายแล้ว {{ product.soldCount }} ชิ้น</p>
@@ -48,17 +48,18 @@ export default {
     paginatedProducts() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
-      return this.products.slice(start, end);
+      const products = this.products.slice(start, end);
+      console.log('Paginated products:', products); 
+      return products;
     }
   },
   methods: {
     ...mapActions(['setSelectedProduct']),
     async loadProducts() {
       try {
-        const response = await axios.get('http://localhost:8081/shop/item');
+        const response = await axios.get('http://localhost:8081/selling/productss');
         this.$store.commit('SET_PRODUCTS', response.data);
-        // console.log('Fetched products:', response.data);
-
+        console.log('Fetched products:', response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -107,7 +108,9 @@ export default {
   width: 100%;
   display: flex;
   flex-direction: column;
+  /* justify-content: center; */
   align-items: center;
+  background-color: #ffffff;
 }
 
 .products-items img {
@@ -122,9 +125,16 @@ export default {
   height: 70px;
   text-align: center;
 }
-
+.products-item {
+  width: 100%;
+  height: 140px;
+  background: #ffffff;
+  text-align: center;
+}
 .products-title {
   font-size: 20px;
+  margin: 0;
+  margin-top: 10px;
 }
 
 .price {
@@ -140,17 +150,14 @@ export default {
 
 .price-soldout {
   width: 200px;
-  height: 40px;
+  height: auto;
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 10px;
   overflow: hidden;
   padding-bottom: 0.5rem;
 }
 
-.products-item {
-  width: 100%;
-  background: #ffffff;
-  text-align: center;
-}
+
 </style>

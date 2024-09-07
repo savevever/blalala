@@ -50,19 +50,14 @@ export default {
                     password: this.password
                 });
 
-                if (response.status === 200) {
-                    const data = response.data;
-                    this.messages.success_msg = data.message;
-                    this.messages.error = '';
+                if (response.status === 200 && response.data.token) {
+                    this.messages.success_msg = response.data.message;
                     this.isLoggedIn = true;
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    console.log('User data:', data.user);
-                    console.log('Token:', data.token);
-                    window.location.href = 'http://localhost:8080/';
+                    localStorage.setItem('token', response.data.token);
+                    localStorage.setItem('user', JSON.stringify(response.data.user));
+                    window.location.href = "http://localhost:8080";
                 } else {
                     this.messages.error = response.data.message;
-                    this.messages.success_msg = '';
                 }
             } catch (error) {
                 console.error('Error:', error);

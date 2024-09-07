@@ -5,41 +5,41 @@ export default createStore({
     state: {
         products: [],
         cart: JSON.parse(localStorage.getItem('cart')) || [],
-        history: JSON.parse(localStorage.getItem('history')) || [],
+        // history: [],
         selectedProduct: null,
         users: [],
         currentUser: JSON.parse(localStorage.getItem('user')) || { id: null, name: '', role: 'user', balance: 0 },
-        likedProducts: JSON.parse(localStorage.getItem('likedProducts')) || {},
-        followedShops: JSON.parse(localStorage.getItem('followedShops')) || {},
         shopInfo: null,
-        followerCounts: JSON.parse(localStorage.getItem('followerCounts')) || {},
-        productInfo: null
+        productInfo: null,
+        shopName: ''
     },
     getters: {
         shopInfo: state => state.shopInfo,
+        shopName: state => state.shopName,
         products: state => state.products,
         productInfo: state => state.productInfo,
         cart: state => state.cart,
-        history: state => state.history,
+        // history: state => state.history,
         cartItemCount: state => state.cart.reduce((count, product) => count + product.quantity, 0),
         cartTotal: state => state.cart.reduce((total, product) => total + (product.price * product.quantity), 0),
         selectedProduct: state => state.selectedProduct,
         user: state => userId => state.users.find(user => user.id === userId),
         currentBalance: state => state.currentUser.balance,
-        likedProducts: state => state.likedProducts,
-        followedShops: state => state.followedShops,
-        followerCount: (state) => (shopId) => {
-            // console.log('Shop ID:', shopId, 'Follower Count:', state.followerCounts[shopId]);
-            return state.followerCounts[shopId] || 0;
-        },
-        isFollowed: state => shopId => !!state.followedShops[shopId]
-
     },
     mutations: {
+        // SET_HISTORY(state, history) {
+        //     state.history = history;
+        // },
         setShopInfo(state, shopInfo) {
             state.shopInfo = shopInfo;
         },
-        setProductInfo(state, productInfo) {  
+        setProducts(state, products) {
+            state.products = products;
+        },
+        setShopName(state, shopName) {
+            state.shopName = shopName;
+        },
+        setProductInfo(state, productInfo) {
             state.productInfo = productInfo;
         },
         SET_PRODUCTS(state, products) {
@@ -56,10 +56,11 @@ export default createStore({
                 state.cart.push({ ...product });
             }
             localStorage.setItem('cart', JSON.stringify(state.cart));
-        }, ADD_TO_HISTORY(state, product) {
-            state.history.push({ ...product });
-            localStorage.setItem('history', JSON.stringify(state.history));
-        },
+        }, 
+        // ADD_TO_HISTORY(state, product) {
+        //     state.history.push({ ...product });
+        //     localStorage.setItem('history', JSON.stringify(state.history));
+        // },
         REMOVE_FROM_CART(state, productId) {
             state.cart = state.cart.filter(item => item.id !== productId);
             localStorage.setItem('cart', JSON.stringify(state.cart));
@@ -76,9 +77,10 @@ export default createStore({
         },
         LOAD_CART(state) {
             state.cart = JSON.parse(localStorage.getItem('cart')) || [];
-        }, LOAD_HISTORY(state) {
-            state.history = JSON.parse(localStorage.getItem('history')) || [];
-        },
+        }, 
+        // LOAD_HISTORY(state) {
+        //     state.history = JSON.parse(localStorage.getItem('history')) || [];
+        // },
         SET_USERS(state, users) {
             state.users = users;
         },
@@ -93,59 +95,33 @@ export default createStore({
         UPDATE_BALANCE(state, { userId, amount }) {
             const user = state.users.find(user => user.id === userId);
             if (user) user.balance -= amount;
-        }, TOGGLE_LIKE(state, productId) {
-            if (state.likedProducts[productId]) {
-                delete state.likedProducts[productId];
-            } else {
-                state.likedProducts[productId] = true;
-            }
-            localStorage.setItem('likedProducts', JSON.stringify(state.likedProducts));
-        }, TOGGLE_FOLLOW_SHOP(state, shopId) {
-            if (state.followedShops[shopId]) {
-                delete state.followedShops[shopId];
-                state.followerCounts[shopId] = Math.max(0, state.followerCounts[shopId] - 1);
-            } else {
-                state.followedShops[shopId] = true;
-                state.followerCounts[shopId] = (state.followerCounts[shopId] || 0) + 1;
-            }
-            localStorage.setItem('followedShops', JSON.stringify(state.followedShops));
-            localStorage.setItem('followerCounts', JSON.stringify(state.followerCounts));
-        },
+        }
     },
     actions: {
+        // async loadHistory({ commit }) {
+        //     try {
+        //         const response = await axios.get('/getHistory');
+        //         commit('SET_HISTORY', response.data);
+        //     } catch (error) {
+        //         console.error('Error loading history:', error);
+        //     }
+        // },
         async fetchProducts({ commit }) {
             try {
-                const response = await axios.get('http://localhost:8081/products');
-                commit('SET_PRODUCTS', response.data);
+                const response = await axios.get('http://localhost:8081/selling/productss');
+                commit('setProducts', response.data); // เก็บข้อมูลสินค้าใน Vuex Store
             } catch (error) {
                 console.error('Error fetching products:', error);
             }
-        }, 
-        async fetchShopInfo({ commit }, productId) {
+        },
+        async fetchShopInfo({ commit }) {
             try {
-                const response = await axios.get('http://localhost:8081/products');
-                const products = response.data;
-        
-                const product = products.find(product => product.id == productId);
-        
-                if (product) {
-                    const user = JSON.parse(localStorage.getItem('user'));
-                    const shopInfo = {
-                        id: product.shopId,
-                        name: user.name || 'Unknown',
-                        seller: user.name || 'Unknown'
-                    };
-        
-                    commit('setShopInfo', shopInfo);
-                } else {
-                    console.error('Product not found');
-                }
+                const response = await axios.get('http://localhost:8081/shop/shops');
+                commit('setShopInfo', response.data.data[0]); // เก็บข้อมูลร้านค้าใน Vuex Store
             } catch (error) {
                 console.error('Error fetching shop info:', error);
             }
         },
-        
-        
         async loadUsers({ commit }) {
             try {
                 const response = await axios.get('http://localhost:8081/users');
@@ -189,9 +165,9 @@ export default createStore({
         addToCart({ commit }, product) {
             commit('ADD_TO_CART', product);
         },
-        addToHistory({ commit }, product) {
-            commit('ADD_TO_HISTORY', product);
-        },
+        // addToHistory({ commit }, product) {
+        //     commit('ADD_TO_HISTORY', product);
+        // },
         removeFromCart({ commit }, productId) {
             commit('REMOVE_FROM_CART', productId);
         },
@@ -204,13 +180,6 @@ export default createStore({
         loadCart({ commit }) {
             commit('LOAD_CART');
         },
-        loadHistory({ commit }) {
-            commit('LOAD_HISTORY');
-        },
-        toggleLike({ commit }, productId) {
-            commit('TOGGLE_LIKE', productId);
-        }, toggleFollowShop({ commit }, shopId) {
-            commit('TOGGLE_FOLLOW_SHOP', shopId);
-        },
+
     }
 });

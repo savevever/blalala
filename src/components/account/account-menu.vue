@@ -18,7 +18,8 @@
                 <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
             </div>
             <p v-show="isVisible2"><router-link to="/users/Business" class="custom-link">ดูผลประกอบการ</router-link></p>
-            <p v-show="isVisible2"><router-link to="/selling/StartSelling" class="custom-link">วางขายสินค้า</router-link></p>
+            <p v-show="isVisible2"><router-link to="/selling/StartSelling"
+                    class="custom-link">วางขายสินค้า</router-link></p>
             <!-- <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ที่อยู่</router-link></p>
             <p v-show="isVisible2"><router-link to="/users/Center" class="custom-link">ตั้งค่าการแจ้งเตือน</router-link> -->
             <!-- </p> -->
@@ -44,10 +45,18 @@ export default {
             isVisible: true,
             isVisible2: true,
             userRole: '',
+            isLoggedIn: false
         };
     }, created() {
         this.checkUserRole();
+        this.checkLoginStatus();
     }, methods: {
+        checkUserRole() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.role) {
+                this.userRole = user.role;
+            }
+        },
         toggleVisibility() {
             this.isVisible = !this.isVisible;
         },
@@ -58,19 +67,18 @@ export default {
         },
         checkbutton(checkboxName) {
             this[checkboxName] = !this[checkboxName];
-        }, checkUserRole() {
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (user && user.role) {
-                this.userRole = user.role;
-            }
-        }, logout() {
-            localStorage.removeItem('isLoggedIn');
+        }, checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            this.isLoggedIn = !!token;
+        },  logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             this.isLoggedIn = false;
-            window.location.href = 'http://localhost:8080/';
+            this.userRole = '';  
+            window.location.href = `${process.env.VUE_APP_NGROK}`;
         }
     }
 }
-
 </script>
 <style scoped>
 #Purchase-history-left {

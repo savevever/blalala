@@ -152,43 +152,43 @@ export default {
     },
     methods: {
         validateForm3() {
-            let isValid = true;
-            this.VATError = false;
-            this.checkboxError = false;
-            this.sectionError = false;
-            this.photoVATError = false;
-            this.form3Error = false;
-            // ตรวจสอบว่ามีค่า VAT ที่ถูกเลือกหรือไม่
-            if (!this.VAT) {
-                this.VATError = true;
-                isValid = false;
-            }
-            // ตรวจสอบว่า checkbox ได้ถูกติ๊กหรือไม่
-            if (!this.acceptedTerms) {
-                this.checkboxError = true;
-                isValid = false;
-            }
+            // let isValid = true;
+            // this.VATError = false;
+            // this.checkboxError = false;
+            // this.sectionError = false;
+            // this.photoVATError = false;
+            // this.form3Error = false;
+            // // ตรวจสอบว่ามีค่า VAT ที่ถูกเลือกหรือไม่
+            // if (!this.VAT) {
+            //     this.VATError = true;
+            //     isValid = false;
+            // }
+            // // ตรวจสอบว่า checkbox ได้ถูกติ๊กหรือไม่
+            // if (!this.acceptedTerms) {
+            //     this.checkboxError = true;
+            //     isValid = false;
+            // }
 
-            if (this.VAT === 'VAT-Yes') {
-                // ตรวจสอบว่าเลือกสำนักงานหรือไม่
-                if (!this.office) {
-                    this.sectionError = true;
-                    isValid = false;
-                }
+            // if (this.VAT === 'VAT-Yes') {
+            //     // ตรวจสอบว่าเลือกสำนักงานหรือไม่
+            //     if (!this.office) {
+            //         this.sectionError = true;
+            //         isValid = false;
+            //     }
 
-                // เช็คการอัพรูป
-                if (this.VATImages.length === 0) {
-                    this.photoVATError = true;
-                    isValid = false;
-                }
-            }
+            //     // เช็คการอัพรูป
+            //     if (this.VATImages.length === 0) {
+            //         this.photoVATError = true;
+            //         isValid = false;
+            //     }
+            // }
 
-            // แสดงข้อความแจ้งเตือนหากข้อมูลไม่ครบถ้วน
-            if (!isValid) {
-                this.form3Error = true;
-            }
+            // // แสดงข้อความแจ้งเตือนหากข้อมูลไม่ครบถ้วน
+            // if (!isValid) {
+            //     this.form3Error = true;
+            // }
 
-            return isValid;
+            return true;
         },
         showVAToffice(isVAT) {
             if (isVAT == true) {

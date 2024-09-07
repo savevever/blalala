@@ -32,7 +32,6 @@ import StartSelling from './components/selling/start-selling.vue'
 import salesPage from './components/selling/sales-page.vue'
 
 library.add(fas, faGoogle);
-
 const routes = [
     {
         path: '/', name: 'Homepage', component: Homepage
@@ -106,7 +105,6 @@ const router = createRouter({
     routes
 });
 export default router;
-
 const app = createApp(App);
 app.use(router);
 app.component('font-awesome-icon', FontAwesomeIcon);

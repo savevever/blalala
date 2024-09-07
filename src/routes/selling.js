@@ -1,4 +1,6 @@
 const express = require('express');
+const crypto = require('crypto');
+
 const router = express.Router();
 const { Selling,ProductTest } = require('../configs/database');
 router.post('/users/FormOneSeller', (req, res) => {
@@ -14,7 +16,6 @@ router.post('/save-data', async (req, res) => {
             shopName,email,phoneNumber
             
         });
-
         // ส่ง response กลับไปที่ client พร้อมข้อมูลที่ถูกบันทึก
         res.status(200).json({ message: 'Data saved successfully', data: newSelling });
     } catch (error) {
@@ -58,7 +59,9 @@ router.post('/save-product-data', async (req, res) => {
         };
 
         console.log('Product data to be saved:', productData); // ตรวจสอบข้อมูลที่ถูกแปลง
-
+        if (!productData.id) {
+            productData.id = crypto.randomUUID(); // สร้าง UUID ถ้าไม่มี id
+        }
         // บันทึกข้อมูลลงในฐานข้อมูล PostgreSQL
         await ProductTest.create(productData);
 

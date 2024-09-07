@@ -7,24 +7,25 @@
                 <div id="item-container">
                     <div v-for="(product, index) in cartItems" :key="index" class="item">
                         <div class="items">
-                            <input type="checkbox" v-model="product.checkbox" class="checked">
-                            <img :src="product.imageSource" alt="" style="width: 100px; height: 100px;">
-                            
+                            <input type="checkbox" v-model="product.checkbox" class="checked"
+                                @change="setSelectItem(product)">
+                            <img :src="product.image" alt="" style="width: 100px; height: 100px;">
+
                             <div class="item-1">
-                                <p>{{ product.nameProduct }}</p>
-                                <p>ตัวเลือกสิ้นค้า:สีน้ำตาล</p>
+                                <p><span> {{ product.nameProduct }}</span></p>
+                                <p> ตัวเลือก:<span>{{ product.productTypes }}</span></p>
                             </div>
                             <div class="item-2">
                                 <div class="quantitycount">
                                     <input type="number" v-model="product.quantity" min="1"
                                         @change="onQuantityChange(product.id, product.quantity)">
-                                </div>  
+                                </div>
                                 <div class="product-line-price">{{ calculateLinePrice(product).toFixed(2) }} บาท</div>
                             </div>
                         </div>
                     </div>
                     <div class="item-button">
-                        <button @click="checkout">สั่งซื้อ</button>
+                        <button @click="handleClick">สั่งซื้อ</button>
                         <button @click="selectAllbutton(cartItems)">เลือกสินค้าทั้งหมด</button>
                         <button @click="clearCart">ลบรายการสินค้า</button>
                     </div>
@@ -36,20 +37,168 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 export default {
+
     data() {
         return {
-            quantity: 1
+            selectedItems: [],
+            cartItems: [],
+            currentPage: 1,
+            itemsPerPage: 12,
+            totalItems: 0,
+        }
+    },
+    computed: {
+        totalPages() {
+            return Math.ceil(this.totalItems / this.itemsPerPage);
+        },
+        paginatedProducts() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.cartItems.slice(start, end);
+        },
+        totalPrice() {
+            if (this.selectedItems.length > 0) {
+                return this.calculateLinePrice(this.selectedItems[0]).toFixed(2);
+            }
+            return 0;
         }
     },
     methods: {
-        ...mapActions(['updateQuantity', 'removeFromCart', 'loadCart', 'processPayment']),
+        setSelectItem(product) {
+            if (product.checkbox) {
+                // ถ้าถูกเลือก เพิ่มสินค้าเข้าไปใน selectedItems
+                this.selectedItems.push(product);
+            } else {
+                // ถ้าถูกยกเลิกการเลือก เอาสินค้าออกจาก selectedItems
+                const index = this.selectedItems.findIndex(item => item.id === product.id);
+                if (index !== -1) {
+                    this.selectedItems.splice(index, 1);
+                }
+            }
+            console.log("Selected items:", this.selectedItems);
+        },
+        async loadCart() {
+            try {
+                console.log("sssssss");
+
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) {
+                    throw new Error('User not found in localStorage');
+                }
+                const userEmail = user.email;
+                if (!userEmail) {
+                    throw new Error('User email not found');
+                }
+                const response = await axios.get('http://localhost:8081/products/getCart');
+                const allCartItems = response.data;
+                // กรองข้อมูลตามอีเมลของผู้ใช้
+                this.cartItems = allCartItems.filter(entry => entry.email === userEmail);
+                // ตั้งค่า quantity เริ่มต้น
+                this.cartItems.forEach(item => {
+                    if (item.quantity === 0) {
+                        item.quantity = 1;
+                    }
+                });
+
+                console.log(this.cartItems);
+                this.totalItems = this.cartItems.length;
+            } catch (error) {
+                console.error('Error fetching cart items:', error);
+            }
+        },
         calculateLinePrice(product) {
             return product.price * product.quantity;
         },
+        userEmail() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            console.log('User Email:', user ? user.email : null);
+            return user ? user.email : null;
+        },
+        addToHistoryClicked() {
+            if (this.selectedItems.length > 0) {
+                this.selectedItems.forEach(product => {
+                    const calculatedPrice = this.calculateLinePrice(product).toFixed(2); // คำนวณราคา
+
+                    const productData = {
+                        productId: product.id,
+                        nameProduct: product.nameProduct,
+                        price: calculatedPrice, // ใช้ราคาใหม่ที่คำนวณมา
+                        quantity: product.quantity,
+                        image: product.image,
+                        email: product.email,
+                        shopId: product.shopId,
+                        productTypes: product.productTypes
+                    };
+
+                    console.log('Product Data for History:', productData);
+
+                    axios.post('http://localhost:8081/products/createHistoryEntry', productData)
+                        .then(response => {
+                            console.log("Product added to history:", response.data);
+                        })
+                        .catch(error => {
+                            console.error("Error details:", error.response ? error.response.data : error);
+                        });
+                });
+            }
+        },
+        handleClick() {
+            this.addToHistoryClicked();
+            this.payment();
+        },
+        payment() {
+            const selectedIds = this.selectedItems.map(product => product.id);
+            const totalAmount = this.selectedItems.reduce((sum, product) => sum + this.calculateLinePrice(product), 0).toFixed(2);
+
+            console.log("Selected IDs for payment:", selectedIds);
+            console.log("Total amount:", totalAmount);
+
+            axios.post('http://localhost:8081/2c2p/paymentToken', {
+                ProductID: selectedIds.join(', '),
+                amount: totalAmount
+            })
+                .then(paymentResponse => {
+                    const payloadObject = paymentResponse.data;
+                    const payload = payloadObject.payload.payload.toString();
+                    console.log('Payload received from 2C2P:', payload);
+
+                    if (typeof payload === 'string') {
+                        const decoded = jwtDecode(payload);
+                        console.log('Decoded JWT:', decoded);
+                        const webPaymentUrl = decoded.webPaymentUrl;
+
+                        if (webPaymentUrl) {
+                            window.location.href = webPaymentUrl;
+                        } else {
+                            alert('ไม่พบลิงก์สำหรับการจ่ายเงินใน Payload');
+                        }
+                    } else {
+                        console.error('Invalid token: Payload is not a string', payload);
+                        alert('เกิดข้อผิดพลาดในการประมวลผล payment token');
+                    }
+                })
+                .catch(error => {
+                    if (error.response) {
+                        console.error('Error processing payment token:', error.response.data);
+                    } else {
+                        console.error('Error processing payment token:', error.message);
+                    }
+                    alert('เกิดข้อผิดพลาดในการประมวลผล payment token');
+                });
+        },
         onQuantityChange(productId, quantity) {
-            this.updateQuantity({ productId, quantity });
+            const product = this.cartItems.find(item => item.id === productId);
+            if (product) {
+                product.quantity = quantity;
+                const updatedPrice = this.calculateLinePrice(product).toFixed(2);
+                console.log('Quantity updated:', product);
+                console.log('Updated price:', updatedPrice);
+            } else {
+                console.error('Product not found');
+            }
         },
         clearCart() {
             const itemsToRemove = this.cartItems.filter(product => product.checkbox);
@@ -62,9 +211,9 @@ export default {
                 product.checkbox = !product.checkbox;
             });
         },
-        checkout() {
+        async checkout() {
             const totalAmount = this.cartTotal;
-            const success = this.processPayment({ userId: 1, amount: totalAmount }); // สมมุติว่าใช้ user id 1
+            const success = await this.processPayment({ userId: 1, amount: totalAmount }); // สมมุติว่าใช้ user id 1
             if (success) {
                 alert('ชำระเงินสำเร็จ');
                 console.log('ยอดเงินคงเหลือ: ' + this.currentBalance);
@@ -72,31 +221,20 @@ export default {
             } else {
                 alert('ยอดเงินไม่พอ');
             }
-        }
+        },
+        cancelProduct(productId) {
+            console.log('Canceling product with ID:', productId);
+            this.removeFromCart(productId);
+        },
+        gotoPage(page) {
+            this.currentPage = page;
+        },
     },
-    computed: {
-        ...mapGetters(['cart', 'cartTotal','currentBalance']),
-        cartItems() {
-            return this.cart;
-        },
-        selectedItems() {
-            return this.cartItems.filter(product => product.checkbox);
-        },
-        totalPages() {
-            return Math.ceil(this.cart.length / this.itemsPerPage);
-        },
-        paginatedProducts() {
-            const start = (this.currentPage - 1) * this.itemsPerPage;
-            const end = start + this.itemsPerPage;
-            return this.cart.slice(start, end);
-        }
-    },
-    mounted() {
-        this.loadCart();
+    async mounted() {
+        await this.loadCart();
     }
 };
 </script>
-
 
 <style scoped>
 #Purchase-history-container {
@@ -215,5 +353,15 @@ export default {
     width: 30px;
     font-size: 20px;
     height: 30px;
+}
+
+.item-1 {
+    display: flex;
+    align-items: center;
+    gap: 20rem;
+}
+
+.item-1 span {
+    font-size: 24px;
 }
 </style>

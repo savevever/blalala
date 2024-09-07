@@ -35,6 +35,7 @@
     </div>
 </template>
 
+
 <script>
 import axios from "axios";
 
@@ -49,6 +50,7 @@ export default {
             phoneError: false,
             form1Error: false,
             shopNameError: false,
+            shopName: '' 
         };
     },
     created() {
@@ -60,6 +62,7 @@ export default {
             if (user) {
                 this.user.name = user.name;
                 this.user.email = user.email;
+                this.userId = user.id;
             }
         },
         validatePhoneNumber() {
@@ -143,9 +146,11 @@ export default {
                 phoneNumber: this.phoneNumber
             };
 
-            axios.post('http://localhost:8081/selling/save-data', data1)
+            axios.post('http://localhost:8081/shop/register-shop', data1)
                 .then(response => {
                     console.log(response.data);
+                    this.shopId = response.data.data.shopId; 
+                    this.shopName = response.data.data.shopName;
                 })
                 .catch(error => {
                     console.error('Error saving data:', error);
@@ -155,7 +160,7 @@ export default {
             if (this.validateForm1()) {
                 //this.saveDataJson();
                 this.getFormOneData();
-                console.log(this.validateForm1());                
+                console.log(this.validateForm1());
                 this.$router.push("/selling/FormTwoSeller");
             }
         }

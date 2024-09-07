@@ -1,90 +1,110 @@
 <template>
     <div id="container">
-
         <div id="Purchase-history-container">
             <menuComponent></menuComponent>
             <div id="Purchase-history-right">
                 <h1>ประวัติการซื้อ</h1>
                 <div id="item-container">
-                    <div v-for="(product, index) in history" :key="index" class="item">
+                    <div v-for="(product, index) in paginatedProducts" :key="index" class="item">
                         <div class="line"></div>
                         <div class="items">
-                            <img :src="product.imageSource" alt="" style="width: 100px; height: 100px;">
+                            <img :src="product.image" alt="" style="width: 100px; height: 100px;">
                             <div class="item-1">
-                                <p>{{ product.title }}</p>
-                                <!-- <p>ตัวเลือกสินค้า: {{ item.option }}</p>     -->
+                                <p><span>{{ product.nameProduct }}</span></p>
                             </div>
                             <div class="item-2">
+                                <p>ตัวเลือก:<span>{{ product.productTypes }}</span> </p>
                                 <p>{{ product.price }} บาท</p>
-                                <p>{{ product.price }} บาท</p>
-                                <p>สถานะ:จัดส่งเเล้ว</p>
+                                <!-- <p>สถานะ:จัดส่งแล้ว</p> -->
                             </div>
                         </div>
                         <div class="line"></div>
                         <div class="item-button">
-                            <button >สั่งซื้ออีกครั้ง</button>
-                            <button @click="cancelOrder(item.id)">ยกเลิกคำสั่งซื้อ</button>
+                            <button @click="reorder(product)">สั่งซื้ออีกครั้ง</button>
+                            <button @click="cancelOrder(product.id)">ยกเลิกคำสั่งซื้อ</button>
                         </div>
                     </div>
                 </div>
-                <paginationComponent :currentPage="currentPage" :totalPages="totalPages" @update:page="gotoPage" />
             </div>
         </div>
     </div>
     <footerComponent></footerComponent>
 </template>
+
 <script>
-import paginationComponent from '../components/pagination-component.vue'
-import { mapGetters, mapActions } from 'vuex';
-
-
+import axios from 'axios';
 
 export default {
-    components: {
-        paginationComponent
-    },mounted() {
-        this.loadHistory();
-        console.log(this.history);
-    }, methods: {
-        ...mapActions(['loadHistory']),
-        reorder(item) {
-            this.$store.dispatch('addToCart', item);
-        },
-        // cancelOrder(productId) {
-        //     // ฟังก์ชันสำหรับยกเลิกคำสั่งซื้อ
-        // },
-        toggleVisibility() {
-            this.isVisible = !this.isVisible;
-        },
-        toggleVisibility2() {
-            this.isVisible2 = !this.isVisible2;
-        }, gotoPage(page) {
-            this.currentPage = page;
-        }
-
-    }, data() {
+    data() {
         return {
-            isVisible: false,
-            isVisible2: false,
-            products: [],
+            history: [],
             currentPage: 1,
             itemsPerPage: 12,
             totalItems: 0,
-
         };
-    }, computed: {
-        ...mapGetters(['history']),
+    },
+    computed: {
         totalPages() {
             return Math.ceil(this.totalItems / this.itemsPerPage);
         },
         paginatedProducts() {
             const start = (this.currentPage - 1) * this.itemsPerPage;
             const end = start + this.itemsPerPage;
-            return this.products.slice(start, end);
+            return this.history.slice(start, end);
         }
     },
+    methods: {
+        async loadHistory() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) {
+                    throw new Error('User not found in localStorage');
+                }
+                const userEmail = user.email;
+                if (!userEmail) {
+                    throw new Error('User email not found');
+                }
+
+                const response = await axios.get('http://localhost:8081/products/getHistory');
+                const allHistory = response.data;
+
+                // กรองข้อมูลตามอีเมลของผู้ใช้
+                this.history = allHistory.filter(entry => entry.email === userEmail);
+                this.totalItems = this.history.length;
+            } catch (error) {
+                console.error('Error fetching history:', error);
+            }
+        },
+        reorder(product) {
+            console.log('Reordering product:', product);
+        },
+        async cancelOrder(productId) {
+            console.log(productId);
+            
+            try {
+                const response = await axios.delete(`http://localhost:8081/products/delHistory/${productId}`);
+                console.log(response.data);  // Log response
+
+                // หลังจากลบเสร็จแล้ว ให้โหลดประวัติใหม่
+                await this.loadHistory();
+            } catch (error) {
+                console.error('Error canceling order:', error);
+            }
+        },
+        gotoPage(page) {
+            this.currentPage = page;
+        },
+    },
+    async mounted() {
+        await this.loadHistory();
+
+    }
 };
 </script>
+
+
+
+
 <style scoped>
 #Purchase-history-container {
     width: 1200px;
@@ -94,11 +114,16 @@ export default {
     display: flex;
 }
 
+p {
+    font-size: 18px;
+}
+
 #Purchase-history-right {
     padding: 20px;
     width: 920px;
     min-height: 690px;
-    height: auto; /* เปลี่ยนจากค่า height คงที่เป็น auto */
+    height: auto;
+    /* เปลี่ยนจากค่า height คงที่เป็น auto */
     background-color: #F4F4F5;
     display: flex;
     flex-direction: column;
@@ -115,6 +140,14 @@ export default {
     display: flex;
     gap: 70px;
     margin-left: 70px;
+}
+
+.item-2 span {
+    font-size: 25px;
+}
+
+.item-1 span {
+    font-size: 25px;
 }
 
 .item {

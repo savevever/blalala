@@ -14,7 +14,7 @@
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
                                 @click="handleToggleLike" />
-                            <p><span>{{ likeCount }}</span> คนที่ถูกใจ</p>
+                            <p><span>111</span> คนที่ถูกใจ</p>
                             <p><span>{{ product.soldCount || 0 }}</span> จำนวนขายแล้ว</p>
                         </div>
                         <p class="price">฿{{ product.price || 'Loading...' }}</p>
@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex';
+import { mapActions } from 'vuex';
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
 import curosurSlice from '../production/curosurSlice.vue';
 import axios from 'axios';
@@ -79,20 +79,13 @@ export default {
         };
     },
     computed: {
-        ...mapGetters(['likedProducts']),
-        isPressedHeart() {
-            return !!this.likedProducts[this.product?.id];
-        },
-        likeCount() {
-            return this.isPressedHeart ? 1 : 0;
-        }
     },
     components: {
         curosurSlice
     },
 
     methods: {
-        ...mapActions(['addToCart', 'addToHistory', 'toggleLike']),
+        ...mapActions(['addToCart', 'addToHistory']),
         addToCartClicked() {
             if (this.product) {
                 const product = {
@@ -117,11 +110,6 @@ export default {
                     imageSource: this.product.images[0]?.src,
                 };
                 this.addToHistory(product);
-            }
-        },
-        handleToggleLike() {
-            if (this.product) {
-                this.toggleLike(this.product.id);
             }
         },
         increment() {

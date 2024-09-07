@@ -13,22 +13,47 @@
         <div class="formbox">
             <label class="start">เริ่มต้นขายของกันเลย</label>
         </div>
-        <router-link to="/selling/StartSelling">
-            <button type="button" class="btn" @click="redirectToSellingPage">
-                เริ่มเลย
-            </button>
-        </router-link>
+        <button type="button" class="btn" @click="redirectToSellingPage">
+            เริ่มเลย
+        </button>
     </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
     data() {
 
-    },
+    }, 
     methods: {
-        redirectToSellingPage() {
-            this.$router.push("/selling/StartSelling");
+        userEmail() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            console.log(user);
+            return user ? user.email : null;
+        },
+        async redirectToSellingPage() {
+            try {
+                // ดึง email จาก localStorage
+                const userEmail = this.userEmail();
+                console.log(userEmail);
+                
+                // ตรวจสอบว่ามี email ใน localStorage หรือไม่
+                if (!userEmail) {
+                    console.error("Email not found in localStorage");
+                    return;
+                }
+
+                // ส่ง request ไปยัง API
+                const response = await axios.post('http://localhost:8081/users/updateRoleToSeller', { email: userEmail });
+
+                console.log("User role updated successfully:", response.data);
+
+                // เปลี่ยนหน้าไปยัง StartSelling
+                this.$router.push("/selling/StartSelling");
+            } catch (error) {
+                console.error('Error updating user role:', error);
+            }
         },
     }
 }
@@ -103,4 +128,3 @@ export default {
     font-size: 15px;
 }
 </style>
-

@@ -328,178 +328,178 @@ export default {
     },
     methods: {
         validateIDCardNumber() {
-            const idCardPattern = /^\d{13}$/;
+            // const idCardPattern = /^\d{13}$/;
 
-            if (idCardPattern.test(this.idCardNumber.trim())) {
-                this.idCardError = false;
-                this.$refs.idCardNumber.style.border = "";
-                return true;
-            } else {
-                this.idCardError = true;
-                this.$refs.idCardNumber.style.border = "1px solid red";
-                return false;
-            }
+            // if (idCardPattern.test(this.idCardNumber.trim())) {
+            //     this.idCardError = false;
+            //     this.$refs.idCardNumber.style.border = "";
+            //     return true;
+            // } else {
+            //     this.idCardError = true;
+            //     this.$refs.idCardNumber.style.border = "1px solid red";
+            //     return false;
+            // }
         },
         validateCorporateRegistrationNumber() {
-            const idCardPattern = /^\d{13}$/;
+            // const idCardPattern = /^\d{13}$/;
 
-            if (idCardPattern.test(this.corporateRegistrationNumber.trim())) {
-                this.idCardErrorCorporate = false;
-                this.$refs.corporateRegistrationNumber.style.border = "";
-                return true;
-            } else {
-                this.idCardErrorCorporate = true;
-                this.$refs.corporateRegistrationNumber.style.border = "1px solid red";
-                return false;
-            }
+            // if (idCardPattern.test(this.corporateRegistrationNumber.trim())) {
+            //     this.idCardErrorCorporate = false;
+            //     this.$refs.corporateRegistrationNumber.style.border = "";
+            //     return true;
+            // } else {
+            //     this.idCardErrorCorporate = true;
+            //     this.$refs.corporateRegistrationNumber.style.border = "1px solid red";
+            //     return false;
+            // }
         },
         validateForm2() {
-            let isValid = true;
-            this.form2Error = false;
-            this.sellerTypeError = false;
-            this.corporateTypeError = false;
+            // let isValid = true;
+            // this.form2Error = false;
+            // this.sellerTypeError = false;
+            // this.corporateTypeError = false;
+           return true
+            // // ตรวจสอบประเภทผู้ขาย
+            // if (!this.sellerType) {
+            //     isValid = false;
+            //     this.sellerTypeError = true;
+            // } else {
+            //     this.sellerTypeError = false;
+            // }
 
-            // ตรวจสอบประเภทผู้ขาย
-            if (!this.sellerType) {
-                isValid = false;
-                this.sellerTypeError = true;
-            } else {
-                this.sellerTypeError = false;
-            }
+            // // ตรวจสอบข้อมูลสำหรับบุคคลธรรมดา
+            // if (this.sellerType === "individual") {
+            //     if (!this.prefix) {
+            //         isValid = false;
+            //         this.prefixError = true;
+            //     } else {
+            //         this.prefixError = false;
+            //         if (this.prefix === "Other" && !this.otherPrefix) {
+            //             isValid = false;
+            //             this.$refs.otherPrefix.style.border = "1px solid red";
+            //             this.prefixErrorOther = true;
+            //         } else {
+            //             this.prefixErrorOther = false;
+            //         }
+            //     }
 
-            // ตรวจสอบข้อมูลสำหรับบุคคลธรรมดา
-            if (this.sellerType === "individual") {
-                if (!this.prefix) {
-                    isValid = false;
-                    this.prefixError = true;
-                } else {
-                    this.prefixError = false;
-                    if (this.prefix === "Other" && !this.otherPrefix) {
-                        isValid = false;
-                        this.$refs.otherPrefix.style.border = "1px solid red";
-                        this.prefixErrorOther = true;
-                    } else {
-                        this.prefixErrorOther = false;
-                    }
-                }
+            //     const individualFields = [
+            //         "firstname",
+            //         "lastname",
+            //         "idCardNumber",
+            //         "birthday",
+            //         "province",
+            //         "amphoe",
+            //         "district",
+            //         "zipcode",
+            //         "addressDetails"
+            //     ];
+            //     individualFields.forEach((field) => {
+            //         if (!this[field]) {
+            //             isValid = false;
+            //             this[field + 'Error'] = true;
+            //             if (this.$refs[field]) {
+            //                 this.$refs[field].style.border = '1px solid red';
+            //             }
+            //         } else {
+            //             this[field + 'Error'] = false;
+            //             if (this.$refs[field]) {
+            //                 this.$refs[field].style.border = '';
+            //                 //console.log('bb');
+            //             }
+            //         }
+            //     });
 
-                const individualFields = [
-                    "firstname",
-                    "lastname",
-                    "idCardNumber",
-                    "birthday",
-                    "province",
-                    "amphoe",
-                    "district",
-                    "zipcode",
-                    "addressDetails"
-                ];
-                individualFields.forEach((field) => {
-                    if (!this[field]) {
-                        isValid = false;
-                        this[field + 'Error'] = true;
-                        if (this.$refs[field]) {
-                            this.$refs[field].style.border = '1px solid red';
-                        }
-                    } else {
-                        this[field + 'Error'] = false;
-                        if (this.$refs[field]) {
-                            this.$refs[field].style.border = '';
-                            //console.log('bb');
-                        }
-                    }
-                });
+            //     if (this.idCardImages.length === 0) {
+            //         isValid = false;
+            //         this.photoIdCardError = true;
+            //     } else {
+            //         this.photoIdCardError = false;
+            //     }
 
-                if (this.idCardImages.length === 0) {
-                    isValid = false;
-                    this.photoIdCardError = true;
-                } else {
-                    this.photoIdCardError = false;
-                }
+            //     if (this.pairIdCardImages.length === 0) {
+            //         isValid = false;
+            //         this.photoPairIdCardError = true;
+            //     } else {
+            //         this.photoPairIdCardError = false;
+            //     }
 
-                if (this.pairIdCardImages.length === 0) {
-                    isValid = false;
-                    this.photoPairIdCardError = true;
-                } else {
-                    this.photoPairIdCardError = false;
-                }
+            //     if (!this.validateIDCardNumber()) {
+            //         isValid = false;
+            //         this.idCardNumberError = true;
+            //     } else {
+            //         this.idCardNumberError = false;
+            //     }
 
-                if (!this.validateIDCardNumber()) {
-                    isValid = false;
-                    this.idCardNumberError = true;
-                } else {
-                    this.idCardNumberError = false;
-                }
+            //     if (!this.birthday || new Date().getFullYear() - new Date(this.birthday).getFullYear() < 20) {
+            //         isValid = false;
+            //         this.ageError = true;
+            //         this.$refs.birthday.style.border = "1px solid red";
+            //     } else {
+            //         this.ageError = false;
+            //     }
+            // }
 
-                if (!this.birthday || new Date().getFullYear() - new Date(this.birthday).getFullYear() < 20) {
-                    isValid = false;
-                    this.ageError = true;
-                    this.$refs.birthday.style.border = "1px solid red";
-                } else {
-                    this.ageError = false;
-                }
-            }
+            // // ตรวจสอบข้อมูลสำหรับนิติบุคคล
+            // if (this.sellerType === "corporate") {
+            //     if (!this.corporateType) {
+            //         isValid = false;
+            //         this.corporateTypeError = true;
+            //     } else {
+            //         this.corporateTypeError = false;
+            //     }
 
-            // ตรวจสอบข้อมูลสำหรับนิติบุคคล
-            if (this.sellerType === "corporate") {
-                if (!this.corporateType) {
-                    isValid = false;
-                    this.corporateTypeError = true;
-                } else {
-                    this.corporateTypeError = false;
-                }
+            //     const corporateFields = [
+            //         "corporateName",
+            //         "corporateRegistrationNumber",
+            //         "provinceCorporate",
+            //         "amphoeCorporate",
+            //         "districtCorporate",
+            //         "zipcodeCorporate",
+            //         "detailsCorporate"
+            //     ];
+            //     corporateFields.forEach((field) => {
+            //         if (!this[field]) {
+            //             isValid = false;
+            //             this[field + 'Error'] = true;
+            //             if (this.$refs[field]) {
+            //                 this.$refs[field].style.border = '1px solid red';
+            //             }
+            //         } else {
+            //             this[field + 'Error'] = false;
+            //             if (this.$refs[field]) {
+            //                 this.$refs[field].style.border = '';
+            //             }
+            //         }
+            //     });
 
-                const corporateFields = [
-                    "corporateName",
-                    "corporateRegistrationNumber",
-                    "provinceCorporate",
-                    "amphoeCorporate",
-                    "districtCorporate",
-                    "zipcodeCorporate",
-                    "detailsCorporate"
-                ];
-                corporateFields.forEach((field) => {
-                    if (!this[field]) {
-                        isValid = false;
-                        this[field + 'Error'] = true;
-                        if (this.$refs[field]) {
-                            this.$refs[field].style.border = '1px solid red';
-                        }
-                    } else {
-                        this[field + 'Error'] = false;
-                        if (this.$refs[field]) {
-                            this.$refs[field].style.border = '';
-                        }
-                    }
-                });
+            //     if (!this.validateCorporateRegistrationNumber()) {
+            //         isValid = false;
+            //         this.corporateRegistrationNumberError = true;
+            //     } else {
+            //         this.corporateRegistrationNumberError = false;
+            //     }
 
-                if (!this.validateCorporateRegistrationNumber()) {
-                    isValid = false;
-                    this.corporateRegistrationNumberError = true;
-                } else {
-                    this.corporateRegistrationNumberError = false;
-                }
+            //     if (this.companyCertificateImages.length === 0) {
+            //         isValid = false;
+            //         this.photoCertificateError = true;
+            //     } else {
+            //         this.photoCertificateError = false;
+            //     }
 
-                if (this.companyCertificateImages.length === 0) {
-                    isValid = false;
-                    this.photoCertificateError = true;
-                } else {
-                    this.photoCertificateError = false;
-                }
+            //     if (this.directorIdCardImages.length === 0) {
+            //         isValid = false;
+            //         this.photoDirectorIdCardError = true;
+            //     } else {
+            //         this.photoDirectorIdCardError = false;
+            //     }
+            // }
 
-                if (this.directorIdCardImages.length === 0) {
-                    isValid = false;
-                    this.photoDirectorIdCardError = true;
-                } else {
-                    this.photoDirectorIdCardError = false;
-                }
-            }
-
-            // แสดงข้อความแจ้งเตือนหากข้อมูลไม่ครบถ้วน
-            if (!isValid) {
-                this.form2Error = true;
-            }
-            return isValid;
+            // // แสดงข้อความแจ้งเตือนหากข้อมูลไม่ครบถ้วน
+            // if (!isValid) {
+            //     this.form2Error = true;
+            // }
+            // return isValid;
         },
         showSellerType(type) {
             this.sellerTypeError = true;
@@ -525,8 +525,7 @@ export default {
         },
         redirectToFormThreeSeller() {
             if (this.validateForm2()) {
-                console.log(this.validateForm2());
-                
+                console.log(this.validateForm2());              
                 this.saveData();
                 this.$router.push("/selling/FormThreeSeller");
             } else {

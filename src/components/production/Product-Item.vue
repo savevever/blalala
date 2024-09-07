@@ -2,11 +2,14 @@
     <div id="container">
         <div id="containerProductItem">
             <div id="ProductItem">
+                <!-- Product Item Header -->
                 <div id="ProductItemHead">
+                    <!-- Product Image -->
                     <div id="ProductItemImg">
                         <img :src="product && product.images && product.images.length > 0 ? product.images[0].src : '../../assets/default.png'"
                             id="Image" />
                     </div>
+                    <!-- Product Details -->
                     <div id="ProductItemTxt">
                         <div>
                             <h2>{{ product ? product.nameProduct : 'Loading...' }}</h2>
@@ -14,16 +17,23 @@
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
                                 @click="handleToggleLike" />
-                            <p><span>{{ likeCount }}</span> คนที่ถูกใจ</p>
+                            <!-- <p><span>11</span> คนที่ถูกใจ</p> -->
                             <p><span>{{ product ? product.soldCount : 0 }}</span> จำนวนขายแล้ว</p>
                         </div>
                         <p class="price">฿{{ product ? product.price : 'Loading...' }}</p>
                         <div class="option">
-                            <p>{{ product ? product.option : 'Loading...' }}</p>
-                            <button v-for="(Category, index) in product ? product.Category : []" :key="index"
-                                @click="selectedButton = index" :class="{ 'pink': selectedButton === index }">
-                                {{ Category }}
-                            </button>
+                            <div v-if="product && product.productTypes">
+                                <div v-for="(type, index) in product.productTypes" :key="index"
+                                    class="product-type-group">
+                                    <p>{{ type.productType1 }}</p>
+                                    <div class="product-type-buttons">
+                                        <button v-for="(option, optionIndex) in type.inputProductType1"
+                                            :key="optionIndex" @click="handleProductTypeClick(option, index)">
+                                            {{ option }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="quantity">
                             <p>จำนวน</p>
@@ -37,15 +47,17 @@
                     </div>
                 </div>
             </div>
+            <!-- Product Item Bottom -->
             <div id="ProductItemBottom">
                 <div id="ProductItemImgSlice">
                     <curosurSlice></curosurSlice>
                 </div>
                 <div id="ProductItemButton">
-                    <router-link to="/users/cart"><button @click="addToCartClicked"
+                    <router-link to="/users/cart"><button @click="addToCartClicked" :disabled="!isProductTypeSelected"
                             class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
-                    <router-link to="/users/PurchaseHistory"><button class="btn2"
-                            @click="addToHistoryClicked">ซื้อสินค้าเลย</button></router-link>
+                    <!-- <router-link to="/users/PurchaseHistory"> -->
+                    <button class="btn2" @click="handleClick" :disabled="!isProductTypeSelected">ซื้อสินค้าเลย</button>
+                    <!-- </router-link> -->
                 </div>
             </div>
         </div>
@@ -54,87 +66,118 @@
 
 <script>
 import axios from 'axios';
-import { mapActions, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
 import curosurSlice from './curosurSlice.vue';
+import { jwtDecode } from 'jwt-decode';
 
 library.add(faHeart);
 
 export default {
-    data() {
-        return {
-            count: 0,
-            selectedButton: null,
-        };
-    },
-    computed: {
-        ...mapGetters(['selectedProduct', 'likedProducts']),
-        product() {
-            return this.selectedProduct;
-        },
-        isPressedHeart() {
-            return !!this.likedProducts[this.product?.id];
-        },
-        likeCount() {
-            return this.isPressedHeart ? 1 : 0;
-        }
-    },
     components: {
         curosurSlice
     },
+    data() {
+        return {
+            count: 0,
+            selectedOptions: []
+        };
+    },
+    computed: {
+        ...mapGetters({
+            product: 'selectedProduct'
+        }),
+        isProductTypeSelected() {
+            return this.selectedOptions.length > 0;
+        }
+    },
     methods: {
-        ...mapActions(['addToCart', 'addToHistory', 'toggleLike', 'setSelectedProduct']),
-        async fetchProductDetails(productId) {
-            try {
-                const response = await axios.get(`http://localhost:8081/selling/productss`);
-                if (response.data && response.data.length > 0) {
-                    const product = response.data.find(product => product.id == productId);
-                    if (product) {
-                        this.setSelectedProduct(product); // อัพเดท Vuex store ด้วยข้อมูลสินค้า
-                        console.log('Product:', product); // ตรวจสอบข้อมูลที่ส่งไป
+        fetchProductDetails(productId) {
+            console.log('Fetching product details for ID:', productId);
+            axios.get('http://localhost:8081/selling/productss')
+                .then(response => {
+                    console.log('Response Data:', response.data);
+                    if (response.data && response.data.length > 0) {
 
+                        const product = response.data.find(product => product.id == productId);
+                        if (product && product.productTypes) {
+                            this.$store.dispatch('setSelectedProduct', product);
+                            console.log('Product Types:', product.productTypes);
+                        } else {
+                            console.log('ไม่พบข้อมูลสินค้าที่มี ID นี้');
+                        }
                     } else {
-                        console.log('ไม่พบข้อมูลสินค้าที่มี ID นี้');
+                        console.log('ไม่พบข้อมูลสินค้า');
                     }
-                } else {
-                    console.log('ไม่พบข้อมูลสินค้า');
-                }
-            } catch (error) {
-                console.error('ข้อผิดพลาดในการดึงข้อมูล:', error);
-            }
+                })
+                .catch(error => {
+                    console.error('ข้อผิดพลาดในการดึงข้อมูล:', error);
+                });
+        },
+        userEmail() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            console.log('User Email:', user ? user.email : null);
+            return user ? user.email : null;
         },
         addToCartClicked() {
             if (this.product) {
-                const product = {
-                    id: this.product.id,
+                const selectedProductType = this.selectedOptions[0] || 'ค่าเริ่มต้น';
+                const productData = {
+                    productId: this.product.id,
                     nameProduct: this.product.nameProduct,
                     price: this.product.price,
                     quantity: this.count,
-                    imageSource: this.product.images && this.product.images.length > 0 ? this.product.images[0].src : '../../assets/default.png',
-                    option: this.product.option,
-                    Category: this.product.Category,
+                    image: this.product.images && this.product.images.length > 0 ? this.product.images[0].src : '../../assets/default.png',
+                    email: this.userEmail(),
+                    shopId: this.product.shopId,
+                    productTypes: selectedProductType
                 };
-                this.addToCart(product);
+                console.log('Product Data for Cart:', productData);
+
+                axios.post('http://localhost:8081/products/createCartEntry', productData)
+                    .then(response => {
+                        console.log("Product added to cart:", response.data);
+                    })
+                    .catch(error => {
+                        console.error("Error adding product to cart:", error);
+                    });
             }
+        },
+        handleClick() {
+            this.addToHistoryClicked();
+            this.handleAddToHistory();
         },
         addToHistoryClicked() {
             if (this.product) {
-                const product = {
-                    id: this.product.id,
+                const selectedProductType = this.selectedOptions[0] || 'ค่าเริ่มต้น';
+                const productData = {
+                    productId: this.product.id,
                     nameProduct: this.product.nameProduct,
                     price: this.product.price,
                     quantity: this.count,
-                    imageSource: this.product.images && this.product.images.length > 0 ? this.product.images[0].src : '../../assets/default.png',
-                    option: this.product.option,
-                    Category: this.product.Category,
+                    image: this.product.images && this.product.images.length > 0 ? this.product.images[0].src : '../../assets/default.png',
+                    email: this.userEmail(),
+                    shopId: this.product.shopId,
+                    productTypes: selectedProductType
                 };
-                this.addToHistory(product);
+                console.log('Product Data for History:', productData);
+                axios.post('http://localhost:8081/products/createHistoryEntry', productData)
+                    .then(response => {
+                        console.log("Product added to history:", response.data);
+                    })
+                    .catch(error => {
+                        console.error("Error details:", error.response.data);
+                    });
             }
+        },
+        handleProductTypeClick(option, index) {
+            this.selectedOptions[index] = option;
+            console.log('Selected options:', this.selectedOptions);
         },
         handleToggleLike() {
             if (this.product) {
-                this.toggleLike(this.product.id);
+                // Handle the like toggle here, possibly using Vuex or another method
             }
         },
         increment() {
@@ -145,15 +188,60 @@ export default {
                 this.count--;
             }
         },
+        handleAddToHistory() {
+            if (this.isProductTypeSelected) {
+                const amountString = this.product.price.toString();
+                const ProductIDString = this.product.id.toString();
+                console.log(amountString);
+
+                axios.post('http://localhost:8081/2c2p/paymentToken', {
+                    ProductID: ProductIDString,
+                    amount: this.product.price
+                })
+                    .then(paymentResponse => {
+                        const payloadObject = paymentResponse.data;
+                        const payload = payloadObject.payload.payload.toString();
+                        console.log('Payload received from 2C2P:', payload);
+
+                        // Check if payload is a string and handle it
+                        if (typeof payload === 'string') {
+                            const decoded = jwtDecode(payload);
+                            console.log('Decoded JWT:', decoded);
+
+                            const webPaymentUrl = decoded.webPaymentUrl;
+                            if (webPaymentUrl) {
+                                window.location.href = webPaymentUrl;
+                            } else {
+                                alert('ไม่พบลิงก์สำหรับการจ่ายเงินใน Payload');
+                            }
+                        } else {
+                            console.error('Invalid token: Payload is not a string', payload);
+                            alert('เกิดข้อผิดพลาดในการประมวลผล payment token');
+                        }
+                    })
+                    .catch(error => {
+                        if (error.response) {
+                            console.error('Error processing payment token:', error.response.data);
+                        } else {
+                            console.error('Error processing payment token:', error.message);
+                        }
+                        alert('เกิดข้อผิดพลาดในการประมวลผล payment token');
+                    });
+            } else {
+                alert('กรุณาเลือกประเภทสินค้าก่อน');
+            }
+        }
+
     },
-    async mounted() {
+    mounted() {
         const productId = new URLSearchParams(window.location.search).get('productId');
         if (productId) {
-            await this.fetchProductDetails(productId);
+            this.fetchProductDetails(productId);
         }
     }
 };
 </script>
+
 
 
 <style scoped>
@@ -167,6 +255,12 @@ export default {
     display: flex;
     gap: 40px;
     /* background-color: #ffffff; */
+}
+
+.product-type-group {
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
 }
 
 #ProductItemTxt {

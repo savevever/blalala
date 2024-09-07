@@ -7,7 +7,7 @@
             <nav>
                 <ul id="MenuItems">
                     <li><router-link to="/">Home</router-link></li>
-                    <li><router-link to="/selling/salesPage">Start Selling</router-link></li>
+                    <li><router-link to="/selling/FormOneSeller">Start Selling</router-link></li>
                     <li><router-link to="/users/Center">Center</router-link></li>
                     <li v-if="!isLoggedIn"><router-link to="/users/login">Login</router-link></li>
                     <li v-if="isLoggedIn"><a @click="logout">Logout</a></li>
@@ -49,7 +49,9 @@ export default {
     data() {
         return {
             isMenuOpen: false,
-            isLoggedIn: false
+            isLoggedIn: false,
+            userName: ''  
+
         };
     }, created() {
         this.checkLoginStatus();
@@ -71,12 +73,12 @@ export default {
                 this.userName = user.name;
                 console.log('User name:', this.userName);  
             }
-        }, logout() {
+        },  logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             this.isLoggedIn = false;
             this.userName = '';
-            window.location.href = '/';
+            window.location.href = `http://localhost:8080`;
         }
     }
 };

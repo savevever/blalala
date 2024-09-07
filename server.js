@@ -13,24 +13,27 @@ const userRoutes = require('./src/routes/User');
 const productRoutes = require('./src/routes/products');
 const shopRoutes = require('./src/routes/shop');
 const sellingRoutes = require('./src/routes/selling');
+const payment = require('./src/routes/2c2p');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(session({
     secret: "secret",
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        secure: true,
+        httpOnly: true,
+        sameSite: 'None' 
+    }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-// Static file serving
 app.use(express.static(path.join(__dirname, 'public')));
-// Database connection and initialization
 async function initializeDatabase() {
     try {
         await sequelize.authenticate();
@@ -41,6 +44,7 @@ async function initializeDatabase() {
         console.error('Unable to connect to the database:', error);
     }
 }
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // WebSocket Server
 wss.on('connection', (ws) => {
@@ -56,9 +60,17 @@ app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 app.use('/shop', shopRoutes);
 app.use('/selling', sellingRoutes);
+app.use('/2c2p', payment);
 app.get('/', (req, res) => res.send('Welcome to the API'));
-
-// Server setup
+app.get('/users/PurchaseHistory', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+app.post('/users/PurchaseHistory', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 const PORT = process.env.PORT || 8081;
 server.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);

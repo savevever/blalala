@@ -116,7 +116,7 @@
                 <button type="button" class="btn-back">ยกเลิก</button>
             </router-link>
             <!-- <router-link :to="{ path: '/store/storepage', query: { productId: product.id } }"> -->
-                <button type="button" class="btn" @click="saveProductData">ถัดไป</button>
+            <button type="button" class="btn" @click="saveProductData">ถัดไป</button>
             <!-- </router-link> -->
         </div>
     </div>
@@ -136,7 +136,6 @@ export default {
             category: "",
             otherCategory: "",
             productDetails: "",
-
             productTypes: [
                 {
                     productType1: "",
@@ -154,8 +153,6 @@ export default {
     methods: {
         addInputField(index) {
             this.productTypes[index].inputProductType1.push("");
-            console.log("zzzzzzzzzzzz");
-
         },
         triggerFileInput(inputName) {
             const refMap = {
@@ -179,8 +176,8 @@ export default {
                         img.src = e.target.result;
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
-                            const max_width = 800; // กำหนดความกว้างสูงสุด
-                            const max_height = 600; // กำหนดความสูงสูงสุด
+                            const max_width = 700; // กำหนดความกว้างสูงสุด
+                            const max_height = 500; // กำหนดความสูงสูงสุด
                             let width = img.width;
                             let height = img.height;
 
@@ -230,6 +227,7 @@ export default {
                 productType2: "",
                 inputProductType2: [],
                 imageList: [],
+                shopname: "",
                 price: "",
                 numberProducts: "",
             });
@@ -257,6 +255,7 @@ export default {
                 otherCategory: this.otherCategory,
                 productDetails: this.productDetails,
                 price: this.price,
+                shopname: this.shopname,
                 imageList: JSON.stringify(this.imageList.map(img => ({
                     id: img.id,
                     src: img.src
@@ -268,6 +267,7 @@ export default {
                     productType2: pt.productType2,
                     inputProductType2: pt.inputProductType2,
                 }))),
+                shopId: localStorage.getItem('shopId')
             };
         }
         ,
@@ -280,20 +280,46 @@ export default {
                 this.photoProductImagesError = false;
             }
 
-            const formData = this.prepareData();
-            console.log('Prepared data for API request:', formData);
+            // ดึงอีเมลจาก localStorage
+            const email = JSON.parse(localStorage.getItem('user')).email;
+
+            // ดึงข้อมูลร้านค้าเพื่อตรวจสอบ shopId โดยอีเมล
+            let shopId = null;
+            try {
+                const response = await axios.get('http://localhost:8081/shop/shops');
+                const shops = response.data.data;
+
+                // หา shop ที่มีอีเมลตรงกัน
+                const shop = shops.find(shop => shop.email === email);
+                if (shop) {
+                    shopId = shop.shopId;
+                } else {
+                    console.error('ไม่พบร้านค้าที่ตรงกับอีเมลที่ให้มา');
+                    return;
+                }
+            } catch (error) {
+                console.error('เกิดข้อผิดพลาดในการดึงข้อมูลร้านค้า:', error);
+                return;
+            }
+
+            const formData = {
+                ...this.prepareData(),
+                shopId: shopId
+            };
+
+            console.log('ข้อมูลที่เตรียมสำหรับการร้องขอ API:', formData);
 
             try {
                 const response = await axios.post('http://localhost:8081/selling/save-product-data', formData);
                 if (response.status === 200) {
                     console.log(response.data.message);
                     // เมื่อบันทึกข้อมูลสำเร็จ นำทางไปยังหน้าถัดไป
-                    this.$router.push('/selling/salesPage');
+                    this.$router.push('/');
                 } else {
-                    console.error('Unexpected response status:', response.status);
+                    console.error('สถานะการตอบกลับที่ไม่คาดคิด:', response.status);
                 }
             } catch (error) {
-                console.error('Error saving data:', error);
+                console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error);
             }
         },
         resetForm() {

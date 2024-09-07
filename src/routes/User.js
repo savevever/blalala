@@ -34,6 +34,28 @@ router.post('/register', async (req, res) => {
         res.status(500).send('Error during registration');
     }
 });
+router.post('/updateRoleToSeller', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        // ค้นหาผู้ใช้ตาม email
+        const user = await User.findOne({ where: { email } });
+
+        // ตรวจสอบว่าผู้ใช้มีอยู่จริงหรือไม่
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // อัปเดตบทบาทผู้ใช้เป็น seller
+        user.role = 'seller';
+        await user.save();
+
+        res.status(200).json({ message: 'User role updated to seller successfully', user });
+    } catch (error) {
+        console.error('Error updating user role:', error);
+        res.status(500).send('Error updating user role');
+    }
+});
 
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;

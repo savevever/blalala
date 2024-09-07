@@ -3,7 +3,7 @@
         <div id="storeContainer">
             <div id="storeLeft">
                 <div id="storeLeftIMG">
-                    <router-link :to="{ path: '/store/storepage', query: { productId: shopId } }">
+                    <router-link :to="{ path: '/store/storepage', query: { productId: productId } }">
                         <img src="../../assets/1.png" alt="">
                     </router-link>
                 </div>
@@ -13,7 +13,7 @@
                     <div id="storeLeftButton">
                         <button @click="handleToggleFollow">
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
-                            <p>{{ isFollowed(shopId) ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
+                            <p>{{ StoreFollow ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
                         </button>
                         <button>
                             <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
@@ -32,7 +32,7 @@
                 <p>รายการสินค้า: 199</p>
                 <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p>
                 <p>เข้าร่วมเมื่อ: 24เดือนที่ผ่านมา</p>
-                <p>ผู้ติดตาม: <span>{{ followerCount(shopId) }}</span> คน</p>
+                <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
             </div>
         </div>
     </div>
@@ -43,6 +43,7 @@ import { mapState, mapActions, mapGetters } from 'vuex';
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlus, faComment, faHouse } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
 
 library.add(faPlus, faComment, faHouse);
 
@@ -50,25 +51,109 @@ export default {
     components: {
         FontAwesomeIcon,
     },
+    data() {
+        return {
+            shopId: null,
+            shopName: '',
+            productId: null,
+            StoreFollow: false,
+            followerCount: 0,
+        };
+    },
     computed: {
         ...mapState(['shopInfo']),
         ...mapGetters(['isFollowed', 'followerCount']),
-        shopName() {
-            const user = JSON.parse(localStorage.getItem('user'));
-            return user ? user.name : 'Loading...';
-        }
     },
-    mounted() {
-        const productId = new URLSearchParams(window.location.search).get('productId');
-        if (productId) {
-            this.fetchProducts(productId);
+    async mounted() {
+        // Get productId from the URL
+        this.productId = new URLSearchParams(window.location.search).get('productId');
+
+        if (this.productId) {
+            await this.fetchProductDetails();
+            await this.fetchShopDetails();
         }
     },
     methods: {
-        ...mapActions(['fetchProducts', ]),
+        ...mapActions(['fetchProducts']),
+
+        async fetchProductDetails() {
+            try {
+                const response = await axios.get("http://localhost:8081/selling/productss");
+                if (response.data && response.data.length > 0) {
+                    const product = response.data.find(product => product.id == this.productId);
+                    if (product) {
+                        this.shopId = product.shopId; // Store the shopId from the product
+                    } else {
+                        console.error('Product not found');
+                    }
+                } else {
+                    console.error('No products found');
+                }
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+            }
+        },
+
+        async fetchShopDetails() {
+            try {
+                if (this.shopId) {
+                    const response = await axios.get('http://localhost:8081/shop/shopsFollow', {
+                        params: { email: this.userEmail }
+                    });
+                    const shops = response.data.data || [];
+                    const shop = shops.find(shop => shop.shopId === this.shopId);
+                    if (shop) {
+                        this.shopName = shop.shopName;
+                        this.StoreFollow = shop.isFollowing; // ใช้ค่า isFollowing ที่ได้รับจาก API
+                        this.followerCount = shop.follow; // ตั้งค่า followerCount ตามข้อมูลที่ได้รับ
+                        this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
+                        console.log('Shop details:', shop);
+                    } else {
+                        console.error('Shop not found');
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching shop details:', error);
+            }
+        }
+
+        ,
+        async handleToggleFollow() {
+            try {
+                console.log('shopId:', this.shopId);
+                console.log('userEmail:', this.userEmail);
+                if (this.shopId !== null && this.userEmail) {
+                    const followChange = this.StoreFollow ? -1 : 1;
+                    console.log("Toggling follow status");
+
+                    // ส่งข้อมูลไปยัง API เพื่ออัปเดตสถานะการติดตาม
+                    const response = await axios.post('http://localhost:8081/shop/follow', {
+                        email: this.userEmail,
+                        shopId: this.shopId,
+                        followChange: followChange
+                    });
+
+                    // อัปเดตสถานะการติดตามและจำนวนผู้ติดตาม
+                    this.StoreFollow = !this.StoreFollow;
+                    this.followerCount = response.data.followCount;
+
+                    console.log('Follow Status:', this.StoreFollow);
+                    console.log('Follower Count:', this.followerCount);
+
+                    // ดึงข้อมูลร้านค้าใหม่เพื่ออัปเดต UI
+                    await this.fetchShopDetails();
+                }
+            } catch (error) {
+                console.error('Error toggling follow status:', error);
+            }
+        }
+
+
     }
 };
 </script>
+
+
 
 
 <style scoped>

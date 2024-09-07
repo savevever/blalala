@@ -7,12 +7,12 @@
                     <img src="../assets/1.png" alt="Store Image">
                 </div>
                 <div id="storeLeftTXT">
-                    <p id="namestore">{{ shopInfo ? shopInfo.name : 'Loading...' }}</p>
+                    <p id="namestore">{{ shopName }}</p>
                     <p>Active 4 นาที ที่ผ่านมา</p>
                     <div id="storeLeftButton">
                         <button @click="handleToggleFollow">
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
-                            <p>{{ isFollowed(shopId) ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
+                            <p>{{ StoreFollow ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
                         </button>
                         <button>
                             <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
@@ -28,23 +28,22 @@
             <div id="line"></div>
             <div id="storeRight">
                 <p>คะแนน: 51.9พัน</p>
-                <p>รายการสินค้า: {{ products.length }}</p>
+                <p>รายการสินค้า:<span>{{ filteredProducts.length }}</span></p>
                 <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p>
                 <p>เข้าร่วมเมื่อ: 24 เดือนที่ผ่านมา</p>
-                <p>ผู้ติดตาม: <span>{{ followerCount(shopId) }}</span> คน</p>
+                <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
             </div>
         </div>
-        <!-- ส่วนแสดงสินค้า -->
         <div class="products-container">
             <div v-for="product in filteredProducts" :key="product.id" class="originalDiv">
                 <div class="products-items">
                     <div @click="selectProduct(product)">
                         <router-link :to="{ path: '/users/production', query: { productId: product.id } }">
-                            <img :src="product.imageSource" />
+                            <img :src="product.images[0].src" alt="Product Image" />
                         </router-link>
                     </div>
                     <div class="products-item">
-                        <p class="products-title">{{ product.title }}</p>
+                        <p class="products-title">{{ product.nameProduct }}</p>
                         <div class="price-soldout">
                             <p class="price">{{ product.price }}</p>
                             <p class="sold-out">ขายแล้ว {{ product.soldCount }} ชิ้น</p>
@@ -57,7 +56,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlus, faComment, faHouse } from '@fortawesome/free-solid-svg-icons';
@@ -71,61 +70,129 @@ export default {
     },
     data() {
         return {
-            products: [], 
-            seller: ''
+            shopId: null,
+            shopName: '',
+            productId: null,
+            products: [],
+            filteredProducts: [],
+            StoreFollow: false,
+            followerCount: 0,
+            userEmail: '',
         };
     },
     computed: {
-        ...mapGetters(['shopInfo', 'isFollowed', 'followerCount']),
-        shopId() {
-            return this.shopInfo ? this.shopInfo.id : null;
-        },
-        filteredProducts() {
-            console.log('Filtering products with seller:', this.seller);
-            const filtered = this.products.filter(product => product.seller === this.seller);    
-            console.log('Filtered products:', filtered);
-            return filtered;
-        }
+        ...mapState(['shopInfo']),
     },
     async mounted() {
-        const productId = new URLSearchParams(window.location.search).get('productId');
-        // console.log('Product ID:', productId);
-        if (productId) {
-            await this.fetchShopInfo(productId);
-            await this.loadProducts();
-            this.setSeller(productId);
-        }
+        const user = localStorage.getItem('user');
 
+        // ตรวจสอบว่ามีข้อมูลผู้ใช้หรือไม่
+        if (user) {
+            try {
+                // แปลง JSON เป็นอ็อบเจ็กต์
+                const userObject = JSON.parse(user);
+
+                // เข้าถึงค่า email
+                this.userEmail = userObject.email;
+                console.log('User email:', this.userEmail); // ควรแสดงค่าอีเมลที่ถูกต้อง
+
+                // ดำเนินการต่อกับ productId และ shopId
+                this.productId = new URLSearchParams(window.location.search).get('productId');
+                if (this.productId) {
+                    this.fetchProductDetails();
+                    this.fetchShopDetails();
+                }
+            } catch (error) {
+                console.error('Error parsing user from localStorage:', error);
+            }
+        } else {
+            console.warn('No user found in localStorage');
+        }
+        this.productId = new URLSearchParams(window.location.search).get('productId');
+        if (this.productId) {
+            await this.fetchProductDetails();
+            await this.fetchShopDetails();
+        }
     },
     methods: {
-        ...mapActions(['fetchShopInfo', 'toggleFollowShop', 'setSelectedProduct']),
-        handleToggleFollow() {
-            if (this.shopId) {
-                this.toggleFollowShop(this.shopId);
-            }
-        },
-        selectProduct(product) {
-            this.setSelectedProduct(product);
-        },
-        async loadProducts() {
+        ...mapActions(['fetchProducts']),
+        async fetchProductDetails() {
             try {
-                const response = await axios.get('http://localhost:8081/seller/item');
-                this.products = response.data;
-                console.log('Fetched products:', this.products);    
+                const response = await axios.get("http://localhost:8081/selling/productss");
+                this.products = response.data || [];
+
+                console.log('Product Details:', this.products); // ล็อกข้อมูลสินค้า
+
+                if (response.data && response.data.length > 0) {
+                    const product = response.data.find(product => product.id == this.productId);
+                    if (product) {
+                        this.shopId = product.shopId;
+                        console.log('Shop ID:', this.shopId); // ล็อก shopId
+                    } else {
+                        console.error('Product not found');
+                    }
+                } else {
+                    console.error('No products found');
+                }
             } catch (error) {
-                console.error('Error fetching products:', error);
+                console.error('Error fetching product details:', error);
             }
         },
-        setSeller(productId) {
-            const product = this.products.find(p => p.id == productId);
-            console.log('Found product:', product); 
-
-            if (product) {
-                this.seller = product.seller;
-                // console.log('Seller:', this.seller);
+        async fetchShopDetails() {
+            try {
+                if (this.shopId) {
+                    const response = await axios.get('http://localhost:8081/shop/shopsFollow', {
+                        params: { email: this.userEmail }
+                    });
+                    const shops = response.data.data || [];
+                    const shop = shops.find(shop => shop.shopId === this.shopId);
+                    if (shop) {
+                        this.shopName = shop.shopName;
+                        this.StoreFollow = shop.isFollowing; // ใช้ค่า isFollowing ที่ได้รับจาก API
+                        this.followerCount = shop.follow; // ตั้งค่า followerCount ตามข้อมูลที่ได้รับ
+                        this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
+                        console.log('Shop details:', shop);
+                    } else {
+                        console.error('Shop not found');
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching shop details:', error);
             }
         }
+        ,
+        async handleToggleFollow() {
+            try {
+                console.log('shopId:', this.shopId);
+                console.log('userEmail:', this.userEmail);
+                if (this.shopId !== null && this.userEmail) {
+                    const followChange = this.StoreFollow ? -1 : 1;
+                    console.log("Toggling follow status");
+
+                    // ส่งข้อมูลไปยัง API เพื่ออัปเดตสถานะการติดตาม
+                    const response = await axios.post('http://localhost:8081/shop/follow', {
+                        email: this.userEmail,
+                        shopId: this.shopId,
+                        followChange: followChange
+                    });
+
+                    // อัปเดตสถานะการติดตามและจำนวนผู้ติดตาม
+                    this.StoreFollow = !this.StoreFollow;
+                    this.followerCount = response.data.followCount;
+
+                    console.log('Follow Status:', this.StoreFollow);
+                    console.log('Follower Count:', this.followerCount);
+
+                    // ดึงข้อมูลร้านค้าใหม่เพื่ออัปเดต UI
+                    await this.fetchShopDetails();
+                }
+            } catch (error) {
+                console.error('Error toggling follow status:', error);
+            }
+        }
+
     }
+
 };
 </script>
 
@@ -277,6 +344,7 @@ textarea {
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-color: #ffffff;
 }
 
 .products-items img {

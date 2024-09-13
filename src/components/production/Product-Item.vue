@@ -190,13 +190,13 @@ export default {
         },
         handleAddToHistory() {
             if (this.isProductTypeSelected) {
-                const amountString = this.product.price.toString();
+                // const amountString = this.product.price.toString();
                 const ProductIDString = this.product.id.toString();
-                console.log(amountString);
-
+                console.log(ProductIDString);
                 axios.post('http://localhost:8081/2c2p/paymentToken', {
                     ProductID: ProductIDString,
-                    amount: this.product.price
+                    amount: this.product.price,
+                    email: this.userEmail(),
                 })
                     .then(paymentResponse => {
                         const payloadObject = paymentResponse.data;

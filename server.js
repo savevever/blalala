@@ -25,7 +25,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true,
+        secure: false,
         httpOnly: true,
         sameSite: 'None' 
     }
@@ -44,7 +44,10 @@ async function initializeDatabase() {
         console.error('Unable to connect to the database:', error);
     }
 }
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'dist'), {
+    cacheControl: false,
+    etag: false
+  }));
 
 // WebSocket Server
 wss.on('connection', (ws) => {
@@ -62,15 +65,11 @@ app.use('/shop', shopRoutes);
 app.use('/selling', sellingRoutes);
 app.use('/2c2p', payment);
 app.get('/', (req, res) => res.send('Welcome to the API'));
-app.get('/users/PurchaseHistory', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+
 app.post('/users/PurchaseHistory', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+
 const PORT = process.env.PORT || 8081;
 server.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);

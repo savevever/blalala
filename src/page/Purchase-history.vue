@@ -80,7 +80,7 @@ export default {
         },
         async cancelOrder(productId) {
             console.log(productId);
-            
+
             try {
                 const response = await axios.delete(`http://localhost:8081/products/delHistory/${productId}`);
                 console.log(response.data);  // Log response
@@ -94,8 +94,20 @@ export default {
         gotoPage(page) {
             this.currentPage = page;
         },
+        handleRedirectToLocalhost() {
+            const currentUrl = window.location.href;
+            const expectedLocalhostUrl = 'http://localhost:8080/users/PurchaseHistory';
+            console.log('Current URL:', currentUrl);
+            if (currentUrl !== expectedLocalhostUrl) {
+                const localhostUrl = currentUrl.replace(`${ process.env.VUE_APP_NGROK_URL}users/PurchaseHistory`, expectedLocalhostUrl);
+                console.log('Redirecting to:', localhostUrl);
+                window.location.href = localhostUrl;
+            }
+        }
     },
     async mounted() {
+        this.handleRedirectToLocalhost();
+
         await this.loadHistory();
 
     }

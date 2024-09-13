@@ -1,7 +1,6 @@
 <template>
     <div class="container">
         <div id="storeContainer">
-            <!-- ข้อมูลร้านค้า -->
             <div id="storeLeft">
                 <div id="storeLeftIMG">
                     <img src="../assets/1.png" alt="Store Image">
@@ -37,11 +36,13 @@
         <div class="products-container">
             <div v-for="product in filteredProducts" :key="product.id" class="originalDiv">
                 <div class="products-items">
-                    <div @click="selectProduct(product)">
+                    <div>
                         <router-link :to="{ path: '/users/production', query: { productId: product.id } }">
                             <img :src="product.images[0].src" alt="Product Image" />
                         </router-link>
+                        <button @click="deleteProduct(product.id)" class="delete-button">X</button>
                     </div>
+
                     <div class="products-item">
                         <p class="products-title">{{ product.nameProduct }}</p>
                         <div class="price-soldout">
@@ -60,6 +61,7 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlus, faComment, faHouse } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
+// import { mapActions } from 'vuex';
 
 library.add(faPlus, faComment, faHouse);
 
@@ -69,7 +71,7 @@ export default {
     },
     data() {
         return {
-            shopId: null,
+            shopId: [],
             shopName: '',
             productId: null,
             products: [],
@@ -82,76 +84,47 @@ export default {
 
     async mounted() {
         const user = localStorage.getItem('user');
-
-        // ตรวจสอบว่ามีข้อมูลผู้ใช้หรือไม่
         if (user) {
             try {
-                // แปลง JSON เป็นอ็อบเจ็กต์
                 const userObject = JSON.parse(user);
-
-                // เข้าถึงค่า email
                 this.userEmail = userObject.email;
-                console.log('User email:', this.userEmail); // ควรแสดงค่าอีเมลที่ถูกต้อง
-
-                // ดำเนินการต่อกับ productId และ shopId
-                this.productId = new URLSearchParams(window.location.search).get('productId');
-                if (this.productId) {
-                    this.fetchProductDetails();
-                    this.fetchShopDetails();
-                }
+                console.log('User email:', this.userEmail);
             } catch (error) {
                 console.error('Error parsing user from localStorage:', error);
             }
         } else {
             console.warn('No user found in localStorage');
         }
-        this.productId = new URLSearchParams(window.location.search).get('productId');
-        if (this.productId) {
-            await this.fetchProductDetails();
-            await this.fetchShopDetails();
-        }
+        await this.fetchProductDetails();
+        await this.fetchShopDetails();
+
+
     },
     methods: {
         async fetchProductDetails() {
             try {
                 const response = await axios.get("http://localhost:8081/selling/productss");
                 this.products = response.data || [];
-
-                console.log('Product Details:', this.products); // ล็อกข้อมูลสินค้า
-
-                if (response.data && response.data.length > 0) {
-                    const product = response.data.find(product => product.id == this.productId);
-                    if (product) {
-                        this.shopId = product.shopId;
-                        console.log('Shop ID:', this.shopId); // ล็อก shopId
-                    } else {
-                        console.error('Product not found');
-                    }
-                } else {
-                    console.error('No products found');
-                }
+                console.log('Product Details:', this.products);
             } catch (error) {
                 console.error('Error fetching product details:', error);
             }
         },
         async fetchShopDetails() {
             try {
-                if (this.shopId) {
-                    const response = await axios.get('http://localhost:8081/shop/shopsFollow', {
-                        params: { email: this.userEmail }
-                    });
-                    const shops = response.data.data || [];
-                    const shop = shops.find(shop => shop.shopId === this.shopId);
-                    if (shop) {
-                        this.shopName = shop.shopName;
-                        this.StoreFollow = shop.isFollowing; // ใช้ค่า isFollowing ที่ได้รับจาก API
-                        this.followerCount = shop.follow; // ตั้งค่า followerCount ตามข้อมูลที่ได้รับ
-                        this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
-                        console.log('Shop details:', shop);
-                    } else {
-                        console.error('Shop not found');
-                    }
+                const response = await axios.get('http://localhost:8081/shop/shopsFollow');
+                const shops = response.data.data || [];
+                const shop = shops.find(shop => shop.email === this.userEmail);
+                if (shop) {
+                    this.shopName = shop.shopName;
+                    this.shopId = shop.shopId;
+                    this.StoreFollow = shop.isFollowing;
+                    this.followerCount = shop.follow;
+                    this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
+                } else {
+                    console.error('Shop not found');
                 }
+
             } catch (error) {
                 console.error('Error fetching shop details:', error);
             }
@@ -185,10 +158,22 @@ export default {
             } catch (error) {
                 console.error('Error toggling follow status:', error);
             }
+        },
+        async deleteProduct(productId) {
+            try {
+                const confirmDelete = confirm('คุณต้องการลบสินค้านี้หรือไม่?');
+                if (confirmDelete) {
+                    // ส่งคำขอไปยัง backend API เพื่อลบสินค้า
+                    await axios.delete(`http://localhost:8081/selling/products/${productId}`);
+                    // ลบสินค้าออกจากรายการที่แสดงบนหน้าเว็บ
+                    this.filteredProducts = this.filteredProducts.filter(product => product.id !== productId);
+                    console.log('ลบสินค้าสำเร็จ');
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
+            }
         }
-
-    }
-
+    },
 };
 </script>
 
@@ -198,6 +183,19 @@ export default {
     width: 100vw;
     flex-direction: column;
     align-items: center;
+}
+
+.delete-button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 
 #storeContainer {
@@ -337,6 +335,7 @@ textarea {
 
 .products-items {
     width: 100%;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;

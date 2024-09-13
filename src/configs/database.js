@@ -10,7 +10,6 @@ const User = sequelize.define('User', {
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false },
     ConfirmPassword: { type: DataTypes.STRING, allowNull: false },
-    Balance: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 5000 },
     role: { type: DataTypes.STRING, allowNull: false, defaultValue: "user" }
 });
 
@@ -67,7 +66,7 @@ const Shop = sequelize.define('Shop', {
     },
     image: { type: DataTypes.STRING, allowNull: true },
     shopName: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
     phoneNumber: { type: DataTypes.STRING, allowNull: false },
     shopId: { type: DataTypes.STRING, allowNull: false, unique: true },
     like: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
@@ -130,7 +129,7 @@ const history = sequelize.define('history', {
     productId: { type: DataTypes.STRING, allowNull: true },
     image: { type: DataTypes.TEXT, allowNull: true },
     nameProduct: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
     shopId: { type: DataTypes.STRING, allowNull: false },
     price: { type: DataTypes.FLOAT, allowNull: true },
     quantity: { type: DataTypes.INTEGER, allowNull: true },
@@ -142,32 +141,91 @@ const cart = sequelize.define('cart', {
     productId: { type: DataTypes.STRING, allowNull: true },
     image: { type: DataTypes.TEXT, allowNull: true },
     nameProduct: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
     shopId: { type: DataTypes.STRING, allowNull: false },
     price: { type: DataTypes.FLOAT, allowNull: true },
     quantity: { type: DataTypes.INTEGER, allowNull: true },
     productTypes: { type: DataTypes.STRING, allowNull: true },
 });
 const Payment = sequelize.define('Payment', {
-    accountNo: { type: DataTypes.STRING, allowNull: true },
-    customerToken: { type: DataTypes.STRING, allowNull: true },
-    processBy: { type: DataTypes.STRING, allowNull: false },
-    paymentID: { type: DataTypes.STRING, allowNull: false, primaryKey: true },
-    merchantID: { type: DataTypes.STRING, allowNull: false },
-    invoiceNo: { type: DataTypes.STRING, allowNull: false },
-    ProductID: { type: DataTypes.STRING, allowNull: false },
-    amount: { type: DataTypes.FLOAT, allowNull: false },
-    currencyCode: { type: DataTypes.STRING, allowNull: false },
-    tranRef: { type: DataTypes.STRING, allowNull: false },
-    transactionDateTime: { type: DataTypes.STRING, allowNull: false },
-    issuerCountry: { type: DataTypes.STRING, allowNull: true },
-    issuerBank: { type: DataTypes.STRING, allowNull: true },
-    cardType: { type: DataTypes.STRING, allowNull: true },
-    respCode: { type: DataTypes.STRING, allowNull: false },
-    respDesc: { type: DataTypes.STRING, allowNull: true }
+    accountNo: { type: DataTypes.STRING, allowNull: true }, // ตัวเลขบัญชี
+    customerToken: { type: DataTypes.STRING, allowNull: true }, // Token ลูกค้า
+    customerTokenExpiry: { type: DataTypes.DATE, allowNull: true }, // วันหมดอายุของ Token
+    loyaltyPoints: { type: DataTypes.INTEGER, allowNull: true }, // คะแนนสะสม
+    uniqueAccountReference: { type: DataTypes.STRING, allowNull: true }, // รหัสบัญชีเฉพาะ
+    childMerchantID: { type: DataTypes.STRING, allowNull: true }, // รหัสร้านย่อย
+    processBy: { type: DataTypes.STRING, allowNull: false }, // ประมวลผลโดย
+    paymentID: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // รหัสการชำระเงิน (Primary Key)
+    schemePaymentID: { type: DataTypes.STRING, allowNull: true }, // รหัสการชำระเงินในระบบของบัตร
+    merchantID: { type: DataTypes.STRING, allowNull: false }, // รหัสร้านค้า
+    invoiceNo: { type: DataTypes.STRING, allowNull: false }, // หมายเลขใบแจ้งหนี้
+    amount: { type: DataTypes.FLOAT, allowNull: false }, // จำนวนเงิน
+    monthlyPayment: { type: DataTypes.FLOAT, allowNull: true }, // การชำระเงินรายเดือน
+    userDefined1: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 1
+    userDefined2: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 2
+    userDefined3: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 3
+    userDefined4: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 4
+    userDefined5: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 5
+    currencyCode: { type: DataTypes.STRING, allowNull: false }, // รหัสสกุลเงิน
+    recurringUniqueID: { type: DataTypes.STRING, allowNull: true }, // รหัสเฉพาะสำหรับการชำระเงินรายเดือน
+    tranRef: { type: DataTypes.STRING, allowNull: false }, // รหัสอ้างอิงการทำธุรกรรม
+    referenceNo: { type: DataTypes.STRING, allowNull: true }, // หมายเลขอ้างอิง
+    approvalCode: { type: DataTypes.STRING, allowNull: true }, // รหัสอนุมัติ
+    eci: { type: DataTypes.STRING, allowNull: true }, // รหัสการทำธุรกรรมผ่านอินเทอร์เน็ต
+    transactionDateTime: { type: DataTypes.STRING, allowNull: false }, // วันที่และเวลาทำธุรกรรม
+    agentCode: { type: DataTypes.STRING, allowNull: true }, // รหัสตัวแทน
+    channelCode: { type: DataTypes.STRING, allowNull: true }, // รหัสช่องทาง
+    issuerCountry: { type: DataTypes.STRING, allowNull: true }, // ประเทศของผู้ออกบัตร
+    issuerBank: { type: DataTypes.STRING, allowNull: true }, // ธนาคารผู้ออกบัตร
+    installmentMerchantAbsorbRate: { type: DataTypes.FLOAT, allowNull: true }, // อัตราค่าผ่อนชำระที่ร้านค้ารับผิดชอบ
+    cardType: { type: DataTypes.STRING, allowNull: true }, // ประเภทบัตร (เครดิต/เดบิต)
+    idempotencyID: { type: DataTypes.STRING, allowNull: true }, // รหัสสำหรับป้องกันการทำธุรกรรมซ้ำ
+    paymentScheme: { type: DataTypes.STRING, allowNull: true }, // รูปแบบการชำระเงิน
+    displayProcessingAmount: { type: DataTypes.BOOLEAN, allowNull: true }, // การแสดงจำนวนเงินที่ถูกประมวลผล
+    respCode: { type: DataTypes.STRING, allowNull: false }, // รหัสตอบกลับ
+    respDesc: { type: DataTypes.STRING, allowNull: true } // คำอธิบายรหัสตอบกลับ
 }, {});
+const seller = sequelize.define('seller', {
+    accountNo: { type: DataTypes.STRING, allowNull: true }, // ตัวเลขบัญชี
+    customerToken: { type: DataTypes.STRING, allowNull: true }, // Token ลูกค้า
+    customerTokenExpiry: { type: DataTypes.DATE, allowNull: true }, // วันหมดอายุของ Token
+    loyaltyPoints: { type: DataTypes.INTEGER, allowNull: true }, // คะแนนสะสม
+    uniqueAccountReference: { type: DataTypes.STRING, allowNull: true }, // รหัสบัญชีเฉพาะ
+    childMerchantID: { type: DataTypes.STRING, allowNull: true }, // รหัสร้านย่อย
+    processBy: { type: DataTypes.STRING, allowNull: false }, // ประมวลผลโดย
+    paymentID: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // รหัสการชำระเงิน (Primary Key)
+    schemePaymentID: { type: DataTypes.STRING, allowNull: true }, // รหัสการชำระเงินในระบบของบัตร
+    merchantID: { type: DataTypes.STRING, allowNull: false }, // รหัสร้านค้า
+    invoiceNo: { type: DataTypes.STRING, allowNull: false }, // หมายเลขใบแจ้งหนี้
+    amount: { type: DataTypes.FLOAT, allowNull: false }, // จำนวนเงิน
+    monthlyPayment: { type: DataTypes.FLOAT, allowNull: true }, // การชำระเงินรายเดือน
+    userDefined1: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 1
+    userDefined2: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 2
+    userDefined3: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 3
+    userDefined4: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 4
+    userDefined5: { type: DataTypes.STRING, allowNull: true }, // ข้อมูลที่กำหนดโดยผู้ใช้ 5
+    currencyCode: { type: DataTypes.STRING, allowNull: false }, // รหัสสกุลเงิน
+    recurringUniqueID: { type: DataTypes.STRING, allowNull: true }, // รหัสเฉพาะสำหรับการชำระเงินรายเดือน
+    tranRef: { type: DataTypes.STRING, allowNull: false }, // รหัสอ้างอิงการทำธุรกรรม
+    referenceNo: { type: DataTypes.STRING, allowNull: true }, // หมายเลขอ้างอิง
+    approvalCode: { type: DataTypes.STRING, allowNull: true }, // รหัสอนุมัติ
+    eci: { type: DataTypes.STRING, allowNull: true }, // รหัสการทำธุรกรรมผ่านอินเทอร์เน็ต
+    transactionDateTime: { type: DataTypes.STRING, allowNull: false }, // วันที่และเวลาทำธุรกรรม
+    agentCode: { type: DataTypes.STRING, allowNull: true }, // รหัสตัวแทน
+    channelCode: { type: DataTypes.STRING, allowNull: true }, // รหัสช่องทาง
+    issuerCountry: { type: DataTypes.STRING, allowNull: true }, // ประเทศของผู้ออกบัตร
+    issuerBank: { type: DataTypes.STRING, allowNull: true }, // ธนาคารผู้ออกบัตร
+    installmentMerchantAbsorbRate: { type: DataTypes.FLOAT, allowNull: true }, // อัตราค่าผ่อนชำระที่ร้านค้ารับผิดชอบ
+    cardType: { type: DataTypes.STRING, allowNull: true }, // ประเภทบัตร (เครดิต/เดบิต)
+    idempotencyID: { type: DataTypes.STRING, allowNull: true }, // รหัสสำหรับป้องกันการทำธุรกรรมซ้ำ
+    paymentScheme: { type: DataTypes.STRING, allowNull: true }, // รูปแบบการชำระเงิน
+    displayProcessingAmount: { type: DataTypes.BOOLEAN, allowNull: true }, // การแสดงจำนวนเงินที่ถูกประมวลผล
+    respCode: { type: DataTypes.STRING, allowNull: false }, // รหัสตอบกลับ
+    respDesc: { type: DataTypes.STRING, allowNull: true } // คำอธิบายรหัสตอบกลับ
+}, {});
+
 
 // การสร้างความสัมพันธ์
 Shop.hasMany(ProductTest, { foreignKey: 'shopId', sourceKey: 'shopId' });
 ProductTest.belongsTo(Shop, { foreignKey: 'shopId', targetKey: 'shopId' });
-module.exports = { sequelize, User, Product, Shop, Selling, ProductTest, history, cart, Payment };
+module.exports = { sequelize, User, Product, Shop, Selling, ProductTest, history, cart, Payment,seller };

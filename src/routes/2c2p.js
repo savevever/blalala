@@ -34,7 +34,7 @@ const createJWT = (header, payload, secret) => {
     return jwtToken;
 };
 // สร้าง Payment Token โดยการส่งคำร้องไปยัง 2C2P API
-const createPaymentToken = async (amount, ProductID) => {
+const createPaymentToken = async (amount) => {
     const header = {
         alg: "HS256",
         typ: "JWT"
@@ -49,14 +49,14 @@ const createPaymentToken = async (amount, ProductID) => {
         sub: "jrocket@example.com",
         merchantID: "JT04",
         invoiceNo: invoiceNo,
-        ProductID: ProductID,
         description: "test",
         amount: amount,
         currencyCode: "THB",
-        frontendReturnUrl: `https://430b-1-10-231-12.ngrok-free.app/users/PurchaseHistory`,
-        backendReturnUrl: `https://430b-1-10-231-12.ngrok-free.app//2c2p/callback`
+        frontendReturnUrl: `${process.env.VUE_APP_NGROK_URL}users/PurchaseHistory`,
+        backendReturnUrl: `${process.env.VUE_APP_NGROK_URL}2c2p/callback`
     };
     // console.log("Payload Data:", payloadData);
+    //https://40bd-1-10-226-79.ngrok-free.app
     const token = createJWT(header, payloadData, secretKey);
     // console.log("Sending payment request with token:", token);
     try {
@@ -93,17 +93,38 @@ router.post('/callback', async (req, res) => {
         const newPaymentEntry = await Payment.create({
             accountNo: decoded.accountNo || null,
             customerToken: decoded.customerToken || null,
+            customerTokenExpiry: decoded.customerTokenExpiry || null,
+            loyaltyPoints: decoded.loyaltyPoints || null,
+            uniqueAccountReference: decoded.uniqueAccountReference || null,
+            childMerchantID: decoded.childMerchantID || null,
             processBy: decoded.processBy,
             paymentID: decoded.paymentID,
+            schemePaymentID: decoded.schemePaymentID || null,
             merchantID: decoded.merchantID,
             invoiceNo: decoded.invoiceNo,
             amount: parseFloat(decoded.amount),
+            monthlyPayment: decoded.monthlyPayment || null,
+            userDefined1: decoded.userDefined1 || null,
+            userDefined2: decoded.userDefined2 || null,
+            userDefined3: decoded.userDefined3 || null,
+            userDefined4: decoded.userDefined4 || null,
+            userDefined5: decoded.userDefined5 || null,
             currencyCode: decoded.currencyCode,
+            recurringUniqueID: decoded.recurringUniqueID || null,
             tranRef: decoded.tranRef,
+            referenceNo: decoded.referenceNo || null,
+            approvalCode: decoded.approvalCode || null,
+            eci: decoded.eci || null,
             transactionDateTime: decoded.transactionDateTime,
+            agentCode: decoded.agentCode || null,
+            channelCode: decoded.channelCode || null,
             issuerCountry: decoded.issuerCountry || null,
             issuerBank: decoded.issuerBank || null,
+            installmentMerchantAbsorbRate: decoded.installmentMerchantAbsorbRate || null,
             cardType: decoded.cardType || null,
+            idempotencyID: decoded.idempotencyID || null,
+            paymentScheme: decoded.paymentScheme || null,
+            displayProcessingAmount: decoded.displayProcessingAmount || false,
             respCode: decoded.respCode,
             respDesc: decoded.respDesc || null
         });

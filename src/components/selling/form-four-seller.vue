@@ -25,7 +25,7 @@ import axios from 'axios';
 export default {
     data() {
 
-    }, 
+    },
     methods: {
         userEmail() {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -37,7 +37,7 @@ export default {
                 // ดึง email จาก localStorage
                 const userEmail = this.userEmail();
                 console.log(userEmail);
-                
+
                 // ตรวจสอบว่ามี email ใน localStorage หรือไม่
                 if (!userEmail) {
                     console.error("Email not found in localStorage");
@@ -48,6 +48,14 @@ export default {
                 const response = await axios.post('http://localhost:8081/users/updateRoleToSeller', { email: userEmail });
 
                 console.log("User role updated successfully:", response.data);
+                let user = JSON.parse(localStorage.getItem('user'));
+
+                // อัปเดต role ของผู้ใช้เป็น 'seller'
+                if (user) {
+                    user.role = 'seller';
+                    localStorage.setItem('user', JSON.stringify(user));
+                    console.log("User role in localStorage updated to seller.");
+                }
 
                 // เปลี่ยนหน้าไปยัง StartSelling
                 this.$router.push("/selling/StartSelling");

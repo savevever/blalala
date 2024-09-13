@@ -157,7 +157,7 @@ export default {
             console.log("Total amount:", totalAmount);
 
             axios.post('http://localhost:8081/2c2p/paymentToken', {
-                ProductID: selectedIds.join(', '),
+                // ProductID: selectedIds.join(', '),
                 amount: totalAmount
             })
                 .then(paymentResponse => {
@@ -265,7 +265,7 @@ export default {
 .item-2 {
     display: flex;
     gap: 70px;
-    margin-left: 70px;
+    margin-left: 60px;
     align-items: center;
 }
 
@@ -358,10 +358,18 @@ export default {
 .item-1 {
     display: flex;
     align-items: center;
-    gap: 20rem;
+    gap: 14rem;
 }
-
+.item-1 p{
+    display: flex;
+    width: 100px;
+    align-items: center;
+}
 .item-1 span {
     font-size: 24px;
+}
+.product-line-price{
+    display: flex;
+    width: 70px;
 }
 </style>

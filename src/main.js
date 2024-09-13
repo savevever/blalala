@@ -30,7 +30,7 @@ import FormThreeSeller from './components/selling/form-three-seller.vue'
 import FormFourSeller from './components/selling/form-four-seller.vue'
 import StartSelling from './components/selling/start-selling.vue'
 import salesPage from './components/selling/sales-page.vue'
-
+import myStore from './page/myStore.vue';
 library.add(fas, faGoogle);
 const routes = [
     {
@@ -95,6 +95,8 @@ const routes = [
         path: '/selling/StartSelling', name: 'StartSelling ', component: StartSelling
     }, {
         path: '/selling/salesPage', name: 'salesPage ', component: salesPage
+    }, {
+        path: '/selling/myStore', name: 'myStore ', component: myStore
     }
 
     

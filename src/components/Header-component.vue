@@ -7,10 +7,13 @@
             <nav>
                 <ul id="MenuItems">
                     <li><router-link to="/">Home</router-link></li>
-                    <li><router-link to="/selling/FormOneSeller">Start Selling</router-link></li>
-                    <li><router-link to="/users/Center">Center</router-link></li>
+                    <li :class="{ disabled: userRole() === 'seller' }">
+                        <router-link v-if="userRole() !== 'seller'" to="/selling/FormOneSeller">Start Selling</router-link>
+                        <span v-else>Start Selling</span>
+                    </li>
+                    <!-- <li><router-link to="/users/Center">Center</router-link></li> -->
                     <li v-if="!isLoggedIn"><router-link to="/users/login">Login</router-link></li>
-                    <li v-if="isLoggedIn"><a @click="logout">Logout</a></li>
+                    <!-- <li v-if="isLoggedIn"><a @click="logout">Logout</a></li> -->
                     <li>
                         <div class="profile">
                             <router-link to="/users/setting">
@@ -50,8 +53,7 @@ export default {
         return {
             isMenuOpen: false,
             isLoggedIn: false,
-            userName: ''  
-
+            userName: '' ,
         };
     }, created() {
         this.checkLoginStatus();
@@ -60,6 +62,10 @@ export default {
         FontAwesomeIcon
     },
     methods: {
+        userRole() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            return user ? user.role : null;
+        },
         toggleMenu() {
             this.isMenuOpen = !this.isMenuOpen;
         },
@@ -86,6 +92,11 @@ export default {
 
 <style scoped>
 /* Add your styles here */
+.disabled {
+    pointer-events: none;
+    color: grey;
+    opacity: 0.5;
+}
 .head {
     height: 40%;
     width: 100vw;

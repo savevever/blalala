@@ -26,7 +26,7 @@
                     <label>Confirm Password</label>
                 </div>
                 <div class="login-register">
-                    <a href="/users/login" class="formlogin">Login</a>
+                    <router-link to="/users/login"><p>Login</p></router-link>
                 </div>
                 <button type="submit" class="submit-btn">Register</button>
             </form>
@@ -93,7 +93,7 @@ body {
 }
 
 #login-form {
-    background-color: #ffffff;
+    /* background-color: #ffffff; */
 }
 
 /*---------------*/
@@ -313,6 +313,10 @@ a {
     padding: 10px;
     overflow: hidden;
     border-radius: 25px;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center; */
+    align-items: center;
 }
 
 .title {
@@ -322,6 +326,7 @@ a {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .msg-box {

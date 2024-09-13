@@ -115,6 +115,7 @@ router.delete('/Delateproducts', async (req, res) => {
 router.delete('/products/:id', async (req, res) => {
     try {
         const productId = req.params.id;
+        console.log('Product ID ที่ได้รับ:', productId);
         const product = await ProductTest.findByPk(productId);
 
         if (!product) {

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Product, history, cart } = require('../configs/database');
+const { Product, history, cart ,comment} = require('../configs/database');
 
 router.post('/createGraph', async (req, res) => {
     const { id, name, price, stock, totalSales, numberOfOrders, itemsSold, cogs, shippingCosts, day, month, year } = req.body;
@@ -72,6 +72,45 @@ router.post('/createHistoryEntry', async (req, res) => {
         res.status(500).json({ error: 'Error creating history entry' });
     }
 });
+router.post('/createComment', async (req, res) => {
+    const { nameProduct, imageProduct, price, detail, imageComment, star, shopId, email } = req.body;
+    try {
+        const newHistoryEntry = await comment.create({
+            nameProduct,
+            imageProduct,
+            price,
+            detail,
+            imageComment,
+            star,
+            shopId,
+            email
+        });
+
+        console.log("Entry created successfully in history");
+        res.status(201).json(newHistoryEntry);
+    } catch (error) {
+        console.error('Error creating history entry:', error.message);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ error: 'Error creating history entry' });
+    }
+});
+router.get('/getComments/', async (req, res) => {
+    try {
+        const comments = await comment.findAll(); // ดึงคอมเมนต์ทั้งหมด
+
+        if (comments.length === 0) {
+            return res.status(404).json({ message: 'No comments found.' });
+        }
+
+        console.log("Comments retrieved successfully.");
+        res.status(200).json(comments);
+    } catch (error) {
+        console.error('Error retrieving comments:', error.message);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ error: 'Error retrieving comments' });
+    }
+});
+
 
 router.post('/createCartEntry', async (req, res) => {
     const { productId, image, email, nameProduct, shopId, price, quantity, productTypes } = req.body;
@@ -99,26 +138,6 @@ router.post('/createCartEntry', async (req, res) => {
         res.status(500).send('Error creating history entry');
     }
 });
-// router.put('/updateCartEntry', async (req, res) => {
-//     const { productId, quantity } = req.body; // ข้อมูลที่ส่งมาจากฝั่งไคลเอนต์
-//     try {
-//         const cartItem = await cart.findOne({
-//             where: { productId } 
-//         });
-//         if (cartItem) {
-//             // อัปเดตจำนวนสินค้าในตะกร้า
-//             cartItem.quantity = quantity;
-//             await cartItem.save(); // บันทึกการเปลี่ยนแปลง
-
-//             res.json({ message: 'Cart updated successfully' });
-//         } else {
-//             res.status(404).json({ message: 'Product not found in cart' });
-//         }
-//     } catch (error) {
-//         console.error('Error updating cart:', error);
-//         res.status(500).json({ message: 'Failed to update cart' });
-//     }
-// });
 router.get('/getHistory', async (req, res) => {
     try {
         const historyEntries = await history.findAll();

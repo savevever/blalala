@@ -68,6 +68,11 @@
                 <div class="formbox">
                     <label class="section">ที่อยู่ :</label>
                     <div class="formbox">
+                        <textarea name="address-details" ref="addressDetails" id="address-details" class="input-form"
+                            placeholder="รายละเอียดที่อยู่ ระบุตามที่อยู่ตามบัตรประชาชน" v-model="addressDetails"
+                            @input="handleInput()"></textarea>
+                    </div>
+                    <div class="formbox">
                         <label class="section">จังหวัด :</label>
                         <input type="text" id="province" ref="province" name="province" class="input-form"
                             placeholder="จังหวัด" v-model="province" @input="handleInput()" />
@@ -87,11 +92,7 @@
                         <input type="text" id="zipcode" ref="zipcode" name="zipcode" class="input-form"
                             placeholder="รหัสไปรษณีย์" v-model="zipcode" @input="handleInput()" />
                     </div>
-                    <div class="formbox">
-                        <textarea name="address-details" ref="addressDetails" id="address-details" class="input-form"
-                            placeholder="รายละเอียดที่อยู่ ระบุตามที่อยู่ตามบัตรประชาชน" v-model="addressDetails"
-                            @input="handleInput()"></textarea>
-                    </div>
+                    
                 </div>
                 <div class="formbox">
                     <label class="section">รูปถ่ายด้านหน้าบัตรประชาชน :</label>
@@ -267,7 +268,10 @@ library.add(faImage)
 export default {
     data() {
         return {
+            title: '',
+            subDistrict: '',
             shopName: '',
+            postalCode: '',
             email: '',
             phoneNumber: '',
             sellerType: '',
@@ -278,10 +282,16 @@ export default {
             idCardNumber: '',
             birthday: '',
             province: '',
+            companyOffice: '',
             amphoe: '',
+            sellerEmail: '',
+            vatRegistrationDocument: '',
+            vatRegistration: false,
             district: '',
+            idCardWithOwnerImage: '',
             zipcode: '',
-            addressDetails: '',
+            idCardFrontImage: '',
+            addressDetail: '',
             provinceCorporate: '',
             amphoeCorporate: '',
             districtCorporate: '',
@@ -358,7 +368,7 @@ export default {
             // this.form2Error = false;
             // this.sellerTypeError = false;
             // this.corporateTypeError = false;
-           return true
+            return true
             // // ตรวจสอบประเภทผู้ขาย
             // if (!this.sellerType) {
             //     isValid = false;
@@ -523,13 +533,39 @@ export default {
         redirectToFormOneSeller() {
             this.$router.push("/selling/FormOneSeller");
         },
-        redirectToFormThreeSeller() {
-            if (this.validateForm2()) {
-                console.log(this.validateForm2());              
-                this.saveData();
-                this.$router.push("/selling/FormThreeSeller");
-            } else {
-                this.form2Error = true;
+        async redirectToFormThreeSeller() {
+            try {
+                // ข้อมูลที่ต้องการส่งไปใน request
+                const sellerData = {
+                    sellerType: this.sellerType,
+                    title: this.title,
+                    firstName: this.firstName,
+                    lastName: this.lastName,
+                    idCardNumber: this.idCardNumber,
+                    birthDate: this.birthDate,
+                    province: this.province,
+                    district: this.district,
+                    subDistrict: this.subDistrict,
+                    postalCode: this.postalCode,
+                    addressDetail: this.addressDetail,
+                    idCardFrontImage: this.idCardFrontImage,
+                    idCardWithOwnerImage: this.idCardWithOwnerImage,
+                    vatRegistration: this.vatRegistration,
+                    companyOffice: this.companyOffice,
+                    vatRegistrationDocument: this.vatRegistrationDocument,
+                    sellerEmail: this.sellerEmail
+                };
+
+                // เรียกใช้ API POST
+                const response = await axios.post('http://localhost:8081/selling/createSeller', sellerData);
+
+                if (response.status === 201) {
+                    console.log('Seller created successfully:', response.data);
+                    // ถ้า success, redirect ไปยังหน้าอื่น
+                    this.$router.push('/selling/FormThreeSeller');
+                }
+            } catch (error) {
+                console.error('Error creating seller:', error);
             }
         },
         handleInput() {
@@ -620,7 +656,7 @@ export default {
                         const dataUrl = canvas.toDataURL('image/jpeg', 0.75); // quality=0.75
                         // console.log('Resized Image Data URL:', dataUrl);
                         this.idCardImages.push(dataUrl);
-                // เพิ่มรูปภาพลงในอาร์เรย์ที่ระบุ
+                        // เพิ่มรูปภาพลงในอาร์เรย์ที่ระบุ
 
                         this[imageArray].push(dataUrl);
 

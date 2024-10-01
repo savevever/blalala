@@ -2,19 +2,39 @@ const express = require('express');
 const crypto = require('crypto');
 
 const router = express.Router();
-const { Selling,ProductTest } = require('../configs/database');
+const { Selling, ProductTest, seller } = require('../configs/database');
 router.post('/users/FormOneSeller', (req, res) => {
     res.json({ message: 'Form One Seller Page' });
 });
+router.post('/createSeller', async (req, res) => {
+    try {
+        const {
+            sellerType, title, firstName, lastName, idCardNumber, birthDate, province, district,
+            subDistrict, postalCode, addressDetail, idCardFrontImage, idCardWithOwnerImage,
+            vatRegistration, companyOffice, vatRegistrationDocument, sellerEmail
+        } = req.body;
 
+        // Create a new seller entry in the database
+        const newSeller = await seller.create({
+            sellerType, title, firstName, lastName, idCardNumber, birthDate, province,
+            district, subDistrict, postalCode, addressDetail, idCardFrontImage,
+            idCardWithOwnerImage, vatRegistration, companyOffice, vatRegistrationDocument, sellerEmail
+        });
+
+        res.status(201).json({ message: 'Seller created successfully', seller: newSeller });
+    } catch (error) {
+        console.error('Error creating seller:', error);
+        res.status(500).json({ message: 'Error creating seller', error: error.message });
+    }
+});
 router.post('/save-data', async (req, res) => {
     try {
         // ดึงข้อมูลจาก request body
-        const { shopName, email,phoneNumber} = req.body;
+        const { shopName, email, phoneNumber } = req.body;
         // บันทึกข้อมูลลงในฐานข้อมูล PostgreSQL โดยใช้โมเดล Selling
         const newSelling = await Selling.create({
-            shopName,email,phoneNumber
-            
+            shopName, email, phoneNumber
+
         });
         // ส่ง response กลับไปที่ client พร้อมข้อมูลที่ถูกบันทึก
         res.status(200).json({ message: 'Data saved successfully', data: newSelling });
@@ -36,19 +56,10 @@ router.get('/view-data', async (req, res) => {
     }
 });
 
-router.delete('/delete-all', async (req, res) => {
-    try {
-        // ลบข้อมูลทั้งหมดในตาราง Selling
-        await Selling.destroy({ where: {}, truncate: true });
 
-        // ส่ง response กลับไปที่ client
-        res.status(200).json({ message: 'All data deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting data:', error);
-        res.status(500).json({ message: 'Failed to delete data' });
-    }
-});
-router.post('/save-product-data', async (req, res) => {
+const multer = require('multer');
+const upload = multer({ limits: { fileSize: 10 * 1024 * 1024 * 1024 } });
+router.post('/save-product-data', upload.any(), async (req, res) => {
     console.log('Received request body:', req.body); // เพิ่มการล็อกที่นี่
     try {
         const productData = {
@@ -71,6 +82,36 @@ router.post('/save-product-data', async (req, res) => {
         res.status(500).json({ message: 'ไม่สามารถบันทึกข้อมูลได้' });
     }
 });
+router.put('/updateProduct/:id', async (req, res) => {
+    const { id } = req.params;
+    const { totalSell, totalPrice } = req.body;
+
+    // ตรวจสอบว่าค่าที่รับมาเป็นตัวเลขจริง
+    if (isNaN(totalSell) || isNaN(totalPrice)) {
+        return res.status(400).json({ error: 'Invalid input: totalSell or totalPrice is not a number' });
+    }
+
+    try {
+        const product = await ProductTest.findByPk(id);
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        // อัปเดตรวมค่าใหม่
+        const updatedTotalSell = (product.totalSell || 0) + parseInt(totalSell);
+        const updatedTotalPrice = (product.totalPrice || 0) + parseFloat(totalPrice);
+
+        // อัปเดตข้อมูลในฐานข้อมูล
+        product.totalSell = updatedTotalSell;
+        product.totalPrice = updatedTotalPrice;
+        await product.save();
+
+        res.json({ message: 'Product updated successfully', product });
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ error: 'Failed to update product' });
+    }
+});
 
 router.get('/productss', async (req, res) => {
     try {
@@ -81,7 +122,6 @@ router.get('/productss', async (req, res) => {
         res.status(500).json({ message: 'ไม่สามารถดึงข้อมูลได้' });
     }
 });
-
 router.get('/product/latest', async (req, res) => {
     try {
         // ดึงข้อมูลผลิตภัณฑ์ที่มี id สูงสุด (หรือข้อมูลล่าสุด)
@@ -129,10 +169,6 @@ router.delete('/products/:id', async (req, res) => {
         res.status(500).json({ message: 'ไม่สามารถลบข้อมูลได้' });
     }
 });
-
-router.use(express.json({ limit: '50mb' })); // Adjust the limit as needed
-router.use(express.urlencoded({ limit: '50mb', extended: true }));
-
 router.post('/users/salesPage', async (req, res) => {
     try {
         // ดึงข้อมูลทั้งหมดจากตาราง Selling
@@ -145,10 +181,6 @@ router.post('/users/salesPage', async (req, res) => {
         return res.status(500).send('Error retrieving data');
     }
 });
-
-
-
-
 router.post('/users/FormTwoSeller', async (req, res) => {
     try {
         // ดึงข้อมูลทั้งหมดจากตาราง Selling
@@ -161,7 +193,6 @@ router.post('/users/FormTwoSeller', async (req, res) => {
         return res.status(500).send('Error retrieving data');
     }
 });
-
 router.post('/users/FormThreeSeller', (req, res) => {
     res.json({ message: 'Form Three Seller Page' });
 });
@@ -189,9 +220,7 @@ router.post('/api/saveProductData', async (req, res) => {
     const data = req.body;
 
     try {
-        // ตรวจสอบว่าข้อมูลมี id หรือไม่ ถ้ามีให้ทำการอัปเดต ถ้าไม่มีก็ให้สร้างข้อมูลใหม่
         if (data.id) {
-            // Update existing entry
             await Selling.update(data, {
                 where: { id: data.id }
             });

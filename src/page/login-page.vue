@@ -22,6 +22,9 @@
                 <div class="login-register">
                     <a href="/users/register" class="formregister">Register</a>
                 </div>
+                <div class="forgotPassword">
+                    <a href="/users/OTP" class="formregister">Register</a>
+                </div>
                 <button type="submit" class="submit-btn">Log in</button>
             </form>
         </div>
@@ -39,7 +42,6 @@ export default {
                 success_msg: '',
                 error: ''
             },
-            isLoggedIn: false
         };
     },
     methods: {
@@ -52,10 +54,10 @@ export default {
 
                 if (response.status === 200 && response.data.token) {
                     this.messages.success_msg = response.data.message;
-                    this.isLoggedIn = true;
                     localStorage.setItem('token', response.data.token);
                     localStorage.setItem('user', JSON.stringify(response.data.user));
                     window.location.href = "http://localhost:8080";
+
                 } else {
                     this.messages.error = response.data.message;
                 }
@@ -64,10 +66,12 @@ export default {
                 this.messages.error = 'An error occurred. Please try again.';
                 this.messages.success_msg = '';
             }
-        }
+        },
     }
 };
 </script>
+
+
 <style scoped>
 .form-box {
     width: 380px;

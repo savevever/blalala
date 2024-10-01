@@ -12,25 +12,25 @@
                         </div>
                         <div class="graph-items">
                             <div class="item profit">
-                                <font-awesome-icon :icon="['fas', 'coins']" class="icon"/>
+                                <font-awesome-icon :icon="['fas', 'coins']" class="icon" />
                                 <h4 class="card-title">ยอดขายทั้งหมด</h4>
-                                <div class="card-value"><span>227,065.00</span>บาท</div>
+                                <div class="card-value"><span>{{ AlltotalPrice }}</span>บาท</div>
                                 <!-- <a href="#" class="more-info">More info</a> -->
                             </div>
                             <div class="item totallsel">
-                                <font-awesome-icon :icon="['fas', 'truck-fast']" class="icon"/>
+                                <font-awesome-icon :icon="['fas', 'truck-fast']" class="icon" />
                                 <h4 class="card-title">จำนวนสินค้าที่ขาย</h4>
-                                <div class="card-value"><span>227,065.00</span>จำนวน</div>
+                                <div class="card-value"><span>{{ Alltotalsell }}</span>จำนวน</div>
                                 <!-- <a href="#" class="more-info">More info</a> -->
                             </div>
                             <div class="item product">
-                                <font-awesome-icon :icon="['fas', 'book']" class="icon"/>
+                                <font-awesome-icon :icon="['fas', 'book']" class="icon" />
                                 <h4 class="card-title">จำนวนสินค้า</h4>
-                                <div class="card-value"><span>227.00</span>จำนวน</div>
+                                <div class="card-value"><span>{{ filteredProducts.length }}</span>จำนวน</div>
                                 <!-- <a href="#" class="more-info">More info</a> -->
                             </div>
                             <div class="item comment">
-                                <font-awesome-icon icon="fa-regular fa-comments" class="icon"/>
+                                <font-awesome-icon icon="fa-regular fa-comments" class="icon" />
                                 <h4 class="card-title">จำนวนความคิดเห็น</h4>
                                 <div class="card-value"><span>227,065.00</span>จำนวน</div>
                                 <!-- <a href="#" class="more-info">More info</a> -->
@@ -43,14 +43,15 @@
                         <button class="btn" :class="{ active: activeComponent === 'top5mostSell' }"
                             @click="activeComponent = 'top5mostSell'">5สิ้นค้าขายดี</button>
                         <button class="btn" :class="{ active: activeComponent === 'proFit' }"
-                            @click="activeComponent = 'proFit'">ยอดขาย</button>
+                            @click="activeComponent = 'proFit'">ยอดขายตามหมวดหมู่</button>
                         <button class="btn" :class="{ active: activeComponent === 'totallSell' }"
-                            @click="activeComponent = 'totallSell'">ยอดขาย</button>
+                            @click="activeComponent = 'totallSell'">ยอดขายรายเดือน</button>
                     </div>
                     <div class="graph">
-                        <top5mostSell v-if="activeComponent === 'top5mostSell'"></top5mostSell>
-                        <proFit v-if="activeComponent === 'proFit'"></proFit>
-                        <totallSell v-if="activeComponent === 'totallSell'"></totallSell>
+                        <top5mostSell v-if="activeComponent === 'top5mostSell'" :filteredProducts="filteredProducts">
+                        </top5mostSell>
+                        <proFit v-if="activeComponent === 'proFit'" :filteredProducts="filteredProducts"></proFit>
+                        <totallSell v-if="activeComponent === 'totallSell'" :filteredProducts="filteredProducts"></totallSell>
                     </div>
                 </div>
             </div>
@@ -59,13 +60,14 @@
     <footerComponent></footerComponent>
 </template>
 <script>
-import proFit from '../components/graph/proFit.vue';
+import proFit from '../components/graph/category.vue';
 import top5mostSell from '../components/graph/top5mostSell.vue';
-import totallSell from '../components/graph/totallSell.vue';
+import totallSell from '../components/graph/totallSellM.vue';
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCoins, faTruckFast, faBook, faComments } from "@fortawesome/free-solid-svg-icons";
 import { faComments as faCommentsRegular } from "@fortawesome/free-regular-svg-icons";
+import axios from 'axios';
 
 library.add(faCoins, faTruckFast, faBook, faComments, faCommentsRegular);
 export default {
@@ -75,10 +77,72 @@ export default {
         return {
             isVisible: false,
             isVisible2: false,
-            activeComponent: 'top5mostSell'
+            activeComponent: 'top5mostSell',
+            shopId: [],
+            shopName: '',
+            productId: null,
+            products: [],
+            filteredProducts: [],
+            userEmail: '',
         };
     },
+    computed: {
+        Alltotalsell() {
+            return this.filteredProducts.reduce((total, product) => {
+                return total + (product.totalSell || 0);
+            }, 0);
+        },
+        AlltotalPrice() {
+            return this.filteredProducts.reduce((total, product) => {
+                return total + (product.totalPrice || 0);
+            }, 0);
+        }
+    },
+    async mounted() {
+        const user = localStorage.getItem('user');
+        if (user) {
+            try {
+                const userObject = JSON.parse(user);
+                this.userEmail = userObject.email;
+                console.log('User email:', this.userEmail);
+            } catch (error) {
+                console.error('Error parsing user from localStorage:', error);
+            }
+        } else {
+            console.warn('No user found in localStorage');
+        }
+        await this.fetchProductDetails();
+        await this.fetchShopDetails();
+    },
     methods: {
+        async fetchProductDetails() {
+            try {
+                const response = await axios.get("http://localhost:8081/selling/productss");
+                this.products = response.data || [];
+                console.log('Product Details:', this.products);
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+            }
+        },
+        async fetchShopDetails() {
+            try {
+                const response = await axios.get('http://localhost:8081/shop/shopsFollow');
+                const shops = response.data.data || [];
+                const shop = shops.find(shop => shop.email === this.userEmail);
+                if (shop) {
+                    this.shopName = shop.shopName;
+                    this.shopId = shop.shopId;
+                    this.StoreFollow = shop.isFollowing;
+                    this.followerCount = shop.follow;
+                    this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
+                } else {
+                    console.error('Shop not found');
+                }
+
+            } catch (error) {
+                console.error('Error fetching shop details:', error);
+            }
+        },
         toggleVisibility() {
             this.isVisible = !this.isVisible;
         },
@@ -88,7 +152,7 @@ export default {
 
     },
     components: {
-        top5mostSell, totallSell, proFit,FontAwesomeIcon
+        top5mostSell, totallSell, proFit, FontAwesomeIcon
     },
 };
 </script>
@@ -274,11 +338,13 @@ h4 {
     background-color: #c7f3d6;
     border: 2px solid #32a55a;
 }
-.text{
+
+.text {
     width: 50%;
     margin-left: 2.3rem;
 }
-.text h3{
+
+.text h3 {
     margin-bottom: 0;
 }
 
@@ -286,6 +352,6 @@ h4 {
     color: #9c9b9b;
     margin-top: 0.3rem;
 }
-/* ********************** */
 
+/* ********************** */
 </style>

@@ -11,8 +11,9 @@
           <div class="products-item">
             <p class="products-title">{{ product.nameProduct }}</p>
             <div class="price-soldout">
-              <p class="price">{{ product.price }}</p>
-              <p class="sold-out">ขายแล้ว {{ product.soldCount }} ชิ้น</p>
+              <p class="price">{{ product.price }}<span style="color: black;"> บาท</span></p>
+              <!-- <p class="sold-out">ขายแล้ว {{ product.soldCount }} ชิ้น</p> -->
+              <p class="sold-out">ขายเเล้ว:{{ Alltotalsell }}ชิ้น</p>
             </div>
           </div>
         </div>
@@ -32,6 +33,7 @@ export default {
     return {
       currentPage: 1,
       itemsPerPage: 12,
+      filteredProducts: []
     };
   },
   components: {
@@ -42,6 +44,11 @@ export default {
   },
   computed: {
     ...mapGetters(['products']),
+    Alltotalsell() {
+      return this.filteredProducts.reduce((total, product) => {
+        return total + (product.totalSell || 0);
+      }, 0);
+    },
     totalPages() {
       return Math.ceil(this.products.length / this.itemsPerPage);
     },
@@ -49,11 +56,30 @@ export default {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
       const products = this.products.slice(start, end);
-      console.log('Paginated products:', products); 
+      console.log('Paginated products:', products);
       return products;
     }
   },
   methods: {
+    async fetchShopDetails() {
+            try {
+                const response = await axios.get('http://localhost:8081/shop/shopsFollow');
+                const shops = response.data.data || [];
+                const shop = shops.find(shop => shop.email === this.userEmail);
+                if (shop) {
+                    this.shopName = shop.shopName;
+                    this.shopId = shop.shopId;
+                    this.StoreFollow = shop.isFollowing;
+                    this.followerCount = shop.follow;
+                    this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
+                } else {
+                    console.error('Shop not found');
+                }
+
+            } catch (error) {
+                console.error('Error fetching shop details:', error);
+            }
+        },
     ...mapActions(['setSelectedProduct']),
     async loadProducts() {
       try {
@@ -125,12 +151,14 @@ export default {
   height: 70px;
   text-align: center;
 }
+
 .products-item {
   width: 100%;
   height: 140px;
   background: #ffffff;
   text-align: center;
 }
+
 .products-title {
   font-size: 20px;
   margin: 0;
@@ -158,6 +186,4 @@ export default {
   overflow: hidden;
   padding-bottom: 0.5rem;
 }
-
-
 </style>

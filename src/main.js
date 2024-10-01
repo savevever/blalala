@@ -31,10 +31,14 @@ import FormFourSeller from './components/selling/form-four-seller.vue'
 import StartSelling from './components/selling/start-selling.vue'
 import salesPage from './components/selling/sales-page.vue'
 import myStore from './page/myStore.vue';
+import OtpPage from './page/OPT-Component.vue'; 
 library.add(fas, faGoogle);
 const routes = [
     {
         path: '/', name: 'Homepage', component: Homepage
+    },
+    {
+        path: '/users/OTP', name: 'OtpPage', component: OtpPage
     },
     {
         path: '/users/login', name: 'LoginPage', component: LoginPage
@@ -98,8 +102,6 @@ const routes = [
     }, {
         path: '/selling/myStore', name: 'myStore ', component: myStore
     }
-
-    
 ];
 
 const router = createRouter({

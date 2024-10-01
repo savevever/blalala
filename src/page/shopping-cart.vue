@@ -200,6 +200,15 @@ export default {
                 console.error('Product not found');
             }
         },
+        async removeFromCart(productId) {
+        try {
+            await axios.delete(`http://localhost:8081/products/delCart/${productId}`);   
+            this.cartItems = this.cartItems.filter(item => item.id !== productId);
+            this.totalItems = this.cartItems.length;
+        } catch (error) {
+            console.error('Error removing product from cart:', error);
+        }
+    },
         clearCart() {
             const itemsToRemove = this.cartItems.filter(product => product.checkbox);
             itemsToRemove.forEach(product => {
@@ -221,10 +230,6 @@ export default {
             } else {
                 alert('ยอดเงินไม่พอ');
             }
-        },
-        cancelProduct(productId) {
-            console.log('Canceling product with ID:', productId);
-            this.removeFromCart(productId);
         },
         gotoPage(page) {
             this.currentPage = page;
@@ -337,10 +342,7 @@ export default {
     display: flex;
 }
 
-.checked {
-    width: 30px;
-    height: 30px;
-}
+
 
 .quantitycount input {
     font-size: 22px;

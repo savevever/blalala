@@ -82,10 +82,9 @@
                 <div class="input-with-icon">
                     <input v-model="set.productType1" type="text" class="product-type"
                         placeholder="ประเภท เช่น สี ขนาด" />
-                    <!-- <input v-model="set.productType1" type="text" class="product-type" placeholder="สีเขียว" /> -->
                     <div v-for="(input, inputIndex) in set.inputProductType1" :key="inputIndex">
                         <input v-model="set.inputProductType1[inputIndex]" type="text" class="input-product-type"
-                            placeholder="เพิ่มเติม" />
+                            placeholder="ขาว XXL" />
                     </div>
                     <span class="add-input-icon" @click="addInputField(index)">
                         <i class="fa-solid fa-circle-plus"></i>
@@ -93,11 +92,11 @@
                 </div>
             </div>
 
-            <div style="text-align: center; margin-top: 20px">
+            <!-- <div style="text-align: center; margin-top: 20px">
                 <a class="add-set-icon" @click="addInputSet()">
                     <i class="fa-solid fa-circle-plus" id="add-set"></i>
                 </a>
-            </div>
+            </div> -->
         </div>
 
         <div class="details">
@@ -124,6 +123,7 @@
 
 <script>
 import axios from "axios";
+import Pica from 'pica';
 
 export default {
     data() {
@@ -139,7 +139,7 @@ export default {
             productTypes: [
                 {
                     productType1: "",
-                    inputProductType1: [],
+                    inputProductType1: [""],
                     productType2: "",
                     inputProductType2: [],
 
@@ -165,45 +165,62 @@ export default {
                 input.click();
             }
         },
-        previewImage(event, type) {
-            const files = event.target.files; // Get the selected files
+        async previewImage(event, type) {
+            const pica = Pica(); // สร้าง instance ของ pica
+            const files = event.target.files;
             const targetArray = type === 'images' ? this.images : this.imageList;
+
             Array.from(files).forEach((file) => {
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = async (e) => {
                         const img = new Image();
                         img.src = e.target.result;
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            const max_width = 700; // กำหนดความกว้างสูงสุด
-                            const max_height = 500; // กำหนดความสูงสูงสุด
+
+                        img.onload = async () => {
+                            // สร้าง canvas สำหรับภาพที่ไม่ได้ย่อขนาด
+                            const originalCanvas = document.createElement('canvas');
+                            originalCanvas.width = img.width;
+                            originalCanvas.height = img.height;
+                            const originalCtx = originalCanvas.getContext('2d');
+                            originalCtx.drawImage(img, 0, 0, img.width, img.height);
+
+                            // สร้าง canvas สำหรับภาพที่ย่อขนาด
+                            const resizedCanvas = document.createElement('canvas');
+                            const max_width = 400;
+                            const max_height = 300;
                             let width = img.width;
                             let height = img.height;
 
-                            // คำนวณขนาดใหม่ที่ลดลงตามอัตราส่วน
+                            // คำนวณขนาดใหม่ตามอัตราส่วน
                             if (width > height) {
                                 if (width > max_width) {
-                                    height *= max_width / width;
+                                    height = (height * max_width) / width;
                                     width = max_width;
                                 }
                             } else {
                                 if (height > max_height) {
-                                    width *= max_height / height;
+                                    width = (width * max_height) / height;
                                     height = max_height;
                                 }
                             }
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
 
-                            // แปลง Canvas กลับไปเป็น Data URL
-                            const dataUrl = canvas.toDataURL('image/jpeg', 0.75); // quality=0.75
-                            // เพิ่มรูปภาพที่ถูกปรับขนาดลงในอาร์เรย์ images
-                            targetArray.push({
-                                id: type === 'images' ? `image${this.nextImageId++}` : `example${this.nextImageId++}`,
-                                src: dataUrl,
+                            resizedCanvas.width = width;
+                            resizedCanvas.height = height;
+
+                            // ใช้ pica เพื่อ resize ภาพ
+                            await pica.resize(originalCanvas, resizedCanvas);
+
+                            // แปลง canvas ที่ย่อขนาดแล้วเป็น data URL
+                            pica.toBlob(resizedCanvas, 'image/jpeg', 0.75).then((blob) => {
+                                const readerBlob = new FileReader();
+                                readerBlob.onloadend = () => {
+                                    targetArray.push({
+                                        id: type === 'images' ? `image${this.nextImageId++}` : `example${this.nextImageId++}`,
+                                        src: readerBlob.result, // data URL ของภาพที่ย่อขนาดแล้ว
+                                    });
+                                };
+                                readerBlob.readAsDataURL(blob);
                             });
                         };
                     };
@@ -211,8 +228,10 @@ export default {
                 }
             });
 
+            // เคลียร์ค่าใน input เพื่อให้สามารถเลือกไฟล์เดิมซ้ำได้
             event.target.value = "";
-        },
+        }
+        ,
 
         removeExampleImage(index) {
             this.imageList.splice(index, 1);

@@ -18,7 +18,7 @@
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
                                 @click="handleToggleLike" />
                             <!-- <p><span>11</span> คนที่ถูกใจ</p> -->
-                            <p><span>{{ product ? product.soldCount : 0 }}</span> จำนวนขายแล้ว</p>
+                            <p><span>ขายแล้ว{{ Alltotalsell }}</span>ชิ้น</p>
                         </div>
                         <p class="price">฿{{ product ? product.price : 'Loading...' }}</p>
                         <div class="option">
@@ -42,7 +42,7 @@
                                 <span>{{ count }}</span>
                                 <button @click="increment">+</button>
                             </div>
-                            <p>มีสินค้าทั้งหมด:<span>21</span></p>
+                            <p>มีสินค้าทั้งหมด:<span>{{ product ? product.numberProducts : 'Loading...' }}</span> ชิ้น</p>
                         </div>
                     </div>
                 </div>
@@ -81,18 +81,44 @@ export default {
     data() {
         return {
             count: 0,
-            selectedOptions: []
+            selectedOptions: [],
+            filteredProducts: []
         };
     },
     computed: {
         ...mapGetters({
             product: 'selectedProduct'
         }),
+        Alltotalsell() {
+            return this.filteredProducts.reduce((total, product) => {
+                return total + (product.totalSell || 0);
+            }, 0);
+        },
         isProductTypeSelected() {
-            return this.selectedOptions.length > 0;
+            return this.selectedOptions.length > 0 && this.count>0;
         }
     },
     methods: {
+        async fetchShopDetails() {
+            try {
+                const response = await axios.get('http://localhost:8081/shop/shopsFollow');
+                const shops = response.data.data || [];
+                const shop = shops.find(shop => shop.email === this.userEmail);
+                if (shop) {
+                    this.shopName = shop.shopName;
+                    this.shopId = shop.shopId;
+                    this.StoreFollow = shop.isFollowing;
+                    this.followerCount = shop.follow;
+                    this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
+                } else {
+                    console.error('Shop not found');
+                }
+
+            } catch (error) {
+                console.error('Error fetching shop details:', error);
+            }
+        },
+        
         fetchProductDetails(productId) {
             console.log('Fetching product details for ID:', productId);
             axios.get('http://localhost:8081/selling/productss')
@@ -146,7 +172,7 @@ export default {
         },
         handleClick() {
             this.addToHistoryClicked();
-            this.handleAddToHistory();
+            // this.handleAddToHistory();
         },
         addToHistoryClicked() {
             if (this.product) {
@@ -154,14 +180,24 @@ export default {
                 const productData = {
                     productId: this.product.id,
                     nameProduct: this.product.nameProduct,
-                    price: this.product.price,
-                    quantity: this.count,
+                    price: this.product.price || 0,
+                    quantity: this.count || 0,
                     image: this.product.images && this.product.images.length > 0 ? this.product.images[0].src : '../../assets/default.png',
                     email: this.userEmail(),
                     shopId: this.product.shopId,
                     productTypes: selectedProductType
                 };
                 console.log('Product Data for History:', productData);
+                axios.put(`http://localhost:8081/selling/updateProduct/${productData.productId}`, {
+                    totalSell: parseInt(productData.quantity),
+                    totalPrice: parseFloat(productData.price) * parseInt(productData.quantity)
+                })
+                    .then(response => {
+                        console.log("Product added to history:", response.data);
+                    })
+                    .catch(error => {
+                        console.error("Error details:", error.response.data);
+                    });
                 axios.post('http://localhost:8081/products/createHistoryEntry', productData)
                     .then(response => {
                         console.log("Product added to history:", response.data);
@@ -181,22 +217,27 @@ export default {
             }
         },
         increment() {
-            this.count++;
+            if (this.count < this.product.numberProducts) {
+                this.count++;
+            }
+
         },
         decrement() {
             if (this.count > 0) {
                 this.count--;
             }
         },
+        calculateLinePrice() {
+            return this.product.price * this.count;
+        },
         handleAddToHistory() {
+            const totalAmount =  this.calculateLinePrice().toFixed(2);
             if (this.isProductTypeSelected) {
                 // const amountString = this.product.price.toString();
                 const ProductIDString = this.product.id.toString();
                 console.log(ProductIDString);
                 axios.post('http://localhost:8081/2c2p/paymentToken', {
-                    ProductID: ProductIDString,
-                    amount: this.product.price,
-                    email: this.userEmail(),
+                    amount: totalAmount
                 })
                     .then(paymentResponse => {
                         const payloadObject = paymentResponse.data;
@@ -247,13 +288,19 @@ export default {
 <style scoped>
 #Image {
     width: 450px;
-    height: 500px;
+    height: 450px;
+    background-size: cover;
+    background-position: center;
     object-fit: cover;
 }
 
+/* #ProductItemImg{
+    max-height: 450px;
+} */
 #ProductItemHead {
     display: flex;
     gap: 40px;
+    max-height: 460px;
     /* background-color: #ffffff; */
 }
 
@@ -263,6 +310,13 @@ export default {
     align-items: center;
 }
 
+.product-type-buttons button {
+    background-color: #ffffff;
+    border: 2px solid #E8E8E8;
+    border-radius: 5px;
+    /* outline: none;  */
+}
+
 #ProductItemTxt {
     width: 760px;
     height: 500px;
@@ -270,7 +324,7 @@ export default {
     /* background-color: rgb(255, 255, 255); */
     display: flex;
     flex-direction: column;
-    gap: 27px;
+    gap: 22px;
 
 }
 
@@ -343,6 +397,7 @@ router-link {
     width: 1300px;
     flex-direction: column;
     background-color: #ffffff;
+    padding: 15px 0 0 15px;
 }
 
 .quantity {
@@ -365,13 +420,15 @@ router-link {
     width: 55px;
     height: 30px;
     text-align: center;
-    border-top: 1px solid #8f8c8c;
-    border-bottom: 1px solid #8f8c8c;
+    border-top: 1px solid #E8E8E8;
+    border-bottom: 1px solid #E8E8E8;
 
 }
 
 #quantitycount button {
     height: 32px;
+    background-color: #ffffff;
+    border: 2px solid #E8E8E8;
 }
 
 #ProductItemBottom {
@@ -382,6 +439,7 @@ router-link {
 }
 
 #ProductItemButton {
+    padding-top: 45px;
     display: flex;
     gap: 40px;
 
@@ -400,13 +458,12 @@ router-link {
 
 .btn2 {
     padding: 1rem 2rem 1rem 2rem;
-    background: #ffae22;
+    background: #f5e7ce;
+    border: 1px solid #ffae22;
     font-size: 16px;
-    border: 0;
-    color: #ffffff;
+    /* color: #ffffff; */
     cursor: pointer;
 }
-
 #quantitycount button {
     width: 30px;
     font-size: 20px;

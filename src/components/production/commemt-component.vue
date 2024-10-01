@@ -1,44 +1,82 @@
 <template>
     <div id="container">
         <div id="comment-container">
-            <h1>เเสดงความคิดเห็น</h1>
+            <h1>แสดงความคิดเห็น</h1>
             <div class="comment" v-for="(comment, index) in comments" :key="index">
-                <img src="../../assets/1.png">
+                <img src="../../assets/1.png" alt="Comment Image">
                 <div class="comment-right">
-                    <h3>{{ comment.name }}</h3>
-                    <p id="date">{{ comment.date }}</p>
-                    <p id="comment-text">{{ comment.commentText }}</p>
+                    <h3>{{ comment.nameProduct }}</h3>
+                    <p id="date">{{ formatDate(comment.createdAt) }}</p>
+                    <p id="comment-text">{{ comment.detail }}</p>
+
+                    <div class="star-container">
+                        <div class="star-widget">
+                            <!-- ตรวจสอบว่าค่า star เป็น 5 หรือไม่ -->
+                            <!-- <input v-if="comment.star === '5'" type="radio" name="rate-{{ index }}" id="rate-5-{{ index }}" v-model="comment.star" value="5"> -->
+                            <label v-if="comment.star === '5'" for="rate-5"><font-awesome-icon :icon="['fas', 'star']" /></label>
+
+                            <!-- ตรวจสอบว่าค่า star เป็น 4 หรือไม่ -->
+                            <!-- <input v-if="comment.star === '4'" type="radio" name="rate-{{ index }}" id="rate-4-{{ index }}" v-model="comment.star" value="4"> -->
+                            <label v-if="comment.star === '4'" for="rate-4"><font-awesome-icon :icon="['fas', 'star']" /></label>
+
+                            <!-- ตรวจสอบว่าค่า star เป็น 3 หรือไม่ -->
+                            <!-- <input v-if="comment.star === '3'" type="radio" name="rate-{{ index }}" id="rate-3-{{ index }}" v-model="comment.star" value="3"> -->
+                            <label v-if="comment.star === '3'" for="rate-3-{{ index }}"><font-awesome-icon :icon="['fas', 'star']" /></label>
+
+                            <!-- ตรวจสอบว่าค่า star เป็น 2 หรือไม่ -->
+                            <!-- <input v-if="comment.star === '2'" type="radio" name="rate-{{ index }}" id="rate-2-{{ index }}" v-model="comment.star" value="2"> -->
+                            <label v-if="comment.star === '2'" for="rate-2-{{ index }}"><font-awesome-icon :icon="['fas', 'star']" /></label>
+
+                            <!-- ตรวจสอบว่าค่า star เป็น 1 หรือไม่ -->
+                            <!-- <input v-if="comment.star === '1'" type="radio" name="rate-{{ index }}" id="rate-1-{{ index }}" v-model="comment.star" value="1"> -->
+                            <label v-if="comment.star === '1'" for="rate-1-{{ index }}"><font-awesome-icon :icon="['fas', 'star']" /></label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 </template>
+
 <script>
+import axios from 'axios';
+import { faImage, faStar } from '@fortawesome/free-solid-svg-icons'
+library.add(faImage, faStar)
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
 export default {
+    components: {
+        FontAwesomeIcon,
+    },
     data() {
         return {
-            comments: [
-                {
-                    name: 'คนค้นคน 1',
-                    date: '2020-11-11 | สีฟ้า, ไซส์ L',
-                    commentText: 'รอบแรกซื้อมา 1 ตัว เพราะจะลองเนื้อผ้าก่อน รอบนี้ซื้อรอบที่ 2 แล้ว จัดไป 4 ตัวเลย ใส่สบาย ผ้านิ่ม สีสวย ดูระบายอากาศและไม่บาง คุ้มกับราคามากๆ ค่ะ ทางร้านส่งของให้ไวไม่ช้า ไว้จะสั่งอีกแน่นอนค่ะ',
-                },
-                {
-                    name: 'คนค้นคน 2',
-                    date: '2021-01-15 | สีแดง, ไซส์ M',
-                    commentText: 'ขอบคุณทางร้านที่จัดส่งสินค้าอย่างรวดเร็ว ผ้ามาตรฐานดี สวมใส่สบายมาก ขอบคุณมากค่ะ!',
-                },
-                {
-                    name: 'คนค้นคน 3',
-                    date: '2022-03-22 | สีเหลือง, ไซส์ XL',
-                    commentText: 'สินค้าคุณภาพดีมาก ราคาถูก ผ้านุ่ม สวมใส่สบายมาก ห้างร้านจัดส่งรวดเร็วมากค่ะ',
-                },
-            ],
+            comments: [], 
         };
+    },
+    async mounted() {
+        await this.loadComment();
+    },
+    methods: {
+        async loadComment() {
+            try {
+                const response = await axios.get('http://localhost:8081/products/getComments', {
+                    params: { shopId: this.shopId } // ส่ง shopId เป็น query parameter
+                });
+                this.comments = response.data; // เก็บข้อมูลคอมเมนต์ใน array
+            } catch (error) {
+                console.error('Error fetching comments:', error);
+            }
+        },
+        formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
     },
 };
 </script>
+
+
 <style scoped>
 #container {
     display: flex;

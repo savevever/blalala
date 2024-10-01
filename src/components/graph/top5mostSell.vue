@@ -1,29 +1,49 @@
 <template>
     <div class="container">
-        <Bar id="my-chart-id" :options="chartOptions" :data="chartData" />
+        <Bar id="my-chart-id" :options="chartOptions" :data="computedChartData" />
     </div>
-
 </template>
-<script>
-import { Bar } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+<script>
+import { Bar } from 'vue-chartjs';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 export default {
     name: 'BarChart',
     components: { Bar },
+    props: {
+        filteredProducts: {
+            type: Array,
+            required: true
+        }
+    },
+    computed: {
+        // Using computed property for chartData
+        computedChartData() {
+            const sortedProducts = [...JSON.parse(JSON.stringify(this.filteredProducts))].sort((a, b) => b.totalSell - a.totalSell);
+            const top5Products = sortedProducts.slice(0, 5);
+            // console.log("sssss",sortedProducts);
+            
+            const labels = top5Products.map(product => product.nameProduct);
+            const data = top5Products.map(product => product.totalSell);
+
+            // console.log('Chart Labels:', labels);
+            // console.log('Chart Data:', data);
+
+            return {
+                labels,
+                datasets: [{
+                    label: 'สินค้าขายดีที่สุด 5 รายการ',
+                    backgroundColor: '#f87979',
+                    data
+                }]
+            };
+        }
+    },
     data() {
         return {
-            chartData: {
-                labels: ['January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'],
-                datasets: [{
-                    label: 'สินค้าขายดีที่สุด5รายการ',
-                    data: [40, 20, 12, 14, 15, 20, 12, 14, 20, 12, 14,15],
-                    backgroundColor: '#f87979',
-                }]
-            },
             chartOptions: {
                 responsive: true,
                 plugins: {
@@ -40,14 +60,12 @@ export default {
                     x: {
                         title: {
                             display: true,
-                            text: 'เดือน',
+                            text: 'สินค้า',
                             font: {
                                 size: 14,
                                 weight: 'bold',
                             }
                         },
-                        ticks: {
-                        }
                     },
                     y: {
                         title: {
@@ -57,17 +75,15 @@ export default {
                                 size: 14,
                                 weight: 'bold',
                             }
-                        },
-                        ticks: {
                         }
                     }
-                },
-
+                }
             }
-        }
+        };
     }
-}
+};
 </script>
+
 <style scoped>
 .container {
     width: 700px;

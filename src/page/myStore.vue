@@ -13,10 +13,10 @@
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
                             <p>{{ StoreFollow ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
                         </button>
-                        <button>
+                        <!-- <button>
                             <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
                             <p>แชท</p>
-                        </button>
+                        </button> -->
                         <button>
                             <font-awesome-icon :icon="['fas', 'house']" class="font-awesome" />
                             <p>หน้าร้าน</p>
@@ -28,8 +28,8 @@
             <div id="storeRight">
                 <p>คะแนน: 51.9พัน</p>
                 <p>รายการสินค้า:<span>{{ filteredProducts.length }}</span></p>
-                <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p>
-                <p>เข้าร่วมเมื่อ: 24 เดือนที่ผ่านมา</p>
+                <!-- <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p> -->
+                <p>เข้าร่วมเมื่อ: <span>{{ createdAt }}</span></p>
                 <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
             </div>
         </div>
@@ -78,7 +78,8 @@ export default {
             filteredProducts: [],
             StoreFollow: false,
             followerCount: 0,
-            userEmail: '',
+            createdAt: '',
+            userEmail:''
         };
     },
 
@@ -97,8 +98,6 @@ export default {
         }
         await this.fetchProductDetails();
         await this.fetchShopDetails();
-
-
     },
     methods: {
         async fetchProductDetails() {
@@ -112,13 +111,14 @@ export default {
         },
         async fetchShopDetails() {
             try {
-                const response = await axios.get('http://localhost:8081/shop/shopsFollow');
+                const response = await axios.get('http://localhost:8081/shop/shops');
                 const shops = response.data.data || [];
                 const shop = shops.find(shop => shop.email === this.userEmail);
+                console.log(shop.createdAt);
                 if (shop) {
                     this.shopName = shop.shopName;
                     this.shopId = shop.shopId;
-                    this.StoreFollow = shop.isFollowing;
+                    this.createdAt = new Date(shop.createdAt).toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
                     this.followerCount = shop.follow;
                     this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
                 } else {
@@ -132,28 +132,23 @@ export default {
         ,
         async handleToggleFollow() {
             try {
-                console.log('shopId:', this.shopId);
-                console.log('userEmail:', this.userEmail);
                 if (this.shopId !== null && this.userEmail) {
                     const followChange = this.StoreFollow ? -1 : 1;
                     console.log("Toggling follow status");
 
                     // ส่งข้อมูลไปยัง API เพื่ออัปเดตสถานะการติดตาม
-                    const response = await axios.post('http://localhost:8081/shop/follow', {
+                    const response = await axios.patch('http://localhost:8081/shop/follow', {
                         email: this.userEmail,
                         shopId: this.shopId,
                         followChange: followChange
                     });
 
-                    // อัปเดตสถานะการติดตามและจำนวนผู้ติดตาม
+                    // อัปเดตสถานะการติดตามและจำนวนผู้ติดตามจากการตอบกลับ
                     this.StoreFollow = !this.StoreFollow;
                     this.followerCount = response.data.followCount;
 
                     console.log('Follow Status:', this.StoreFollow);
                     console.log('Follower Count:', this.followerCount);
-
-                    // ดึงข้อมูลร้านค้าใหม่เพื่ออัปเดต UI
-                    await this.fetchShopDetails();
                 }
             } catch (error) {
                 console.error('Error toggling follow status:', error);
@@ -172,7 +167,8 @@ export default {
             } catch (error) {
                 console.error('Error deleting product:', error);
             }
-        }
+        },
+
     },
 };
 </script>

@@ -15,10 +15,10 @@
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
                             <p>{{ StoreFollow ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
                         </button>
-                        <button>
+                        <!-- <button>
                             <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
                             <p>แชท</p>
-                        </button>
+                        </button> -->
                         <button>
                             <font-awesome-icon :icon="['fas', 'house']" class="font-awesome" />
                             <p>หน้าร้าน</p>
@@ -39,7 +39,6 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from 'vuex';
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlus, faComment, faHouse } from '@fortawesome/free-solid-svg-icons';
@@ -60,10 +59,6 @@ export default {
             followerCount: 0,
         };
     },
-    computed: {
-        ...mapState(['shopInfo']),
-        ...mapGetters(['isFollowed', 'followerCount']),
-    },
     async mounted() {
         // Get productId from the URL
         this.productId = new URLSearchParams(window.location.search).get('productId');
@@ -74,8 +69,6 @@ export default {
         }
     },
     methods: {
-        ...mapActions(['fetchProducts']),
-
         async fetchProductDetails() {
             try {
                 const response = await axios.get("http://localhost:8081/selling/productss");
@@ -97,15 +90,15 @@ export default {
         async fetchShopDetails() {
             try {
                 if (this.shopId) {
-                    const response = await axios.get('http://localhost:8081/shop/shopsFollow', {
+                    const response = await axios.get('http://localhost:8081/shop/shops', {
                         params: { email: this.userEmail }
                     });
                     const shops = response.data.data || [];
                     const shop = shops.find(shop => shop.shopId === this.shopId);
                     if (shop) {
                         this.shopName = shop.shopName;
-                        this.StoreFollow = shop.isFollowing; // ใช้ค่า isFollowing ที่ได้รับจาก API
-                        this.followerCount = shop.follow; // ตั้งค่า followerCount ตามข้อมูลที่ได้รับ
+                        this.StoreFollow = shop.isFollowing; 
+                        this.followerCount = shop.follow; 
                         this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
                         console.log('Shop details:', shop);
                     } else {
@@ -167,7 +160,7 @@ export default {
 #storeContainer {
     width: 1285px;
     height: 114px;
-    border-radius: 35px;
+    border-radius: 15px;
     background: #FFF;
     margin: 20px 0 20px 0;
     display: flex;

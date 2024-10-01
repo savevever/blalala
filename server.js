@@ -14,6 +14,7 @@ const productRoutes = require('./src/routes/products');
 const shopRoutes = require('./src/routes/shop');
 const sellingRoutes = require('./src/routes/selling');
 const payment = require('./src/routes/2c2p');
+const bodyParser = require('body-parser');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -27,7 +28,7 @@ app.use(session({
     cookie: {
         secure: false,
         httpOnly: true,
-        sameSite: 'None' 
+        sameSite: 'None'
     }
 }));
 app.use(passport.initialize());
@@ -47,8 +48,12 @@ async function initializeDatabase() {
 app.use(express.static(path.join(__dirname, 'dist'), {
     cacheControl: false,
     etag: false
-  }));
+}));
+// ใช้ body-parser สำหรับ JSON
+app.use(bodyParser.json({ limit: '100kb' })); // ปรับขนาดตามต้องการ
 
+// ใช้ body-parser สำหรับ URL-encoded requests
+// app.use(bodyParser.urlencoded({ limit: '100kb', extended: true }));
 // WebSocket Server
 wss.on('connection', (ws) => {
     console.log('New client connected');
@@ -65,7 +70,9 @@ app.use('/shop', shopRoutes);
 app.use('/selling', sellingRoutes);
 app.use('/2c2p', payment);
 app.get('/', (req, res) => res.send('Welcome to the API'));
-
+app.get('/users/PurchaseHistory', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 app.post('/users/PurchaseHistory', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });

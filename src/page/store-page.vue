@@ -1,7 +1,6 @@
 <template>
     <div class="container">
         <div id="storeContainer">
-            <!-- ข้อมูลร้านค้า -->
             <div id="storeLeft">
                 <div id="storeLeftIMG">
                     <img src="../assets/1.png" alt="Store Image">
@@ -29,8 +28,8 @@
             <div id="storeRight">
                 <p>คะแนน: 51.9พัน</p>
                 <p>รายการสินค้า:<span>{{ filteredProducts.length }}</span></p>
-                <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p>
-                <p>เข้าร่วมเมื่อ: 24 เดือนที่ผ่านมา</p>
+                <!-- <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p> -->
+                <p>เข้าร่วมเมื่อ: {{createdAt}}</p>
                 <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
             </div>
         </div>
@@ -77,12 +76,12 @@ export default {
             StoreFollow: false,
             followerCount: 0,
             userEmail: '',
+            createdAt:''
         };
     },
 
     async mounted() {
         const user = localStorage.getItem('user');
-
         // ตรวจสอบว่ามีข้อมูลผู้ใช้หรือไม่
         if (user) {
             try {
@@ -137,13 +136,12 @@ export default {
         async fetchShopDetails() {
             try {
                 if (this.shopId) {
-                    const response = await axios.get('http://localhost:8081/shop/shopsFollow', {
-                        params: { email: this.userEmail }
-                    });
+                    const response = await axios.get('http://localhost:8081/shop/shops',);
                     const shops = response.data.data || [];
                     const shop = shops.find(shop => shop.shopId === this.shopId);
                     if (shop) {
                         this.shopName = shop.shopName;
+                        this.createdAt = new Date(shop.createdAt).toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
                         this.StoreFollow = shop.isFollowing; // ใช้ค่า isFollowing ที่ได้รับจาก API
                         this.followerCount = shop.follow; // ตั้งค่า followerCount ตามข้อมูลที่ได้รับ
                         this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);

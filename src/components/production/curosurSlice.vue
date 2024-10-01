@@ -1,27 +1,30 @@
 <template>
-    <div class="swiper-container">         
-        <div class="swiper-wrapper">
-            <div class="swiper-slide" v-for="image in imageList" :key="image.id">
-                <img :src="image.src" alt="">
+    <div class="carousel">
+        <div class="carousel-inner" :style="{ transform: `translateX(${-currentSlide * 100}%)` }">
+            <div class="carousel-item" v-for="(group, index) in groupedImages" :key="index">
+                <img v-for="image in group" :key="image.id" :src="image.src" :alt="`Image ${image.id}`" />
             </div>
+
         </div>
-        <div class="swiper-button-prev"></div>
-        <div class="swiper-button-next"></div>
+        <button @click="prevSlide" class="carousel-control prev">Prev</button>
+        <button @click="nextSlide" class="carousel-control next">Next</button>
     </div>
 </template>
 
 <script>
-import Swiper from 'swiper/bundle';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 import axios from 'axios';
 
 export default {
     data() {
         return {
-            imageList: [] // ใช้เพื่อเก็บภาพจาก API
+            currentSlide: 0,
+            imageList: [],  
         };
+    },
+    computed: {
+        groupedImages() {
+            return this.chunkArray(this.imageList, 3);
+        }
     },
     methods: {
         async fetchProductDetails(productId) {
@@ -30,7 +33,7 @@ export default {
                 if (response.data && response.data.length > 0) {
                     const product = response.data.find(product => product.id == productId);
                     if (product) {
-                        this.imageList = product.imageList;
+                        this.imageList = product.imageList;  // อัปเดต imageList
                         console.log(this.imageList);
                     } else {
                         console.log('ไม่พบข้อมูลสินค้าที่มี ID นี้');
@@ -41,6 +44,23 @@ export default {
             } catch (error) {
                 console.error('ข้อผิดพลาดในการดึงข้อมูล:', error);
             }
+        },
+        chunkArray(arr, size) {
+            let result = [];
+            for (let i = 0; i < arr.length; i += size) {
+                result.push(arr.slice(i, i + size));
+            }
+            return result;
+        },
+        nextSlide() {
+            if (this.currentSlide < this.groupedImages.length - 1) {
+                this.currentSlide++;
+            }
+        },
+        prevSlide() {
+            if (this.currentSlide > 0) {
+                this.currentSlide--;
+            }
         }
     },
     async mounted() {
@@ -48,67 +68,51 @@ export default {
         if (productId) {
             await this.fetchProductDetails(productId);
         }
-        // Initialize Swiper after images are loaded
-        const swiper = new Swiper('.swiper-container', {
-            slidesPerView: 3,
-            direction: getDirection(),
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            on: {
-                resize: function () {
-                    swiper.changeDirection(getDirection());
-                },
-            },
-        });
-
-        function getDirection() {
-            var windowWidth = window.innerWidth;
-            var direction = windowWidth <= 760 ? 'vertical' : 'horizontal';
-
-            return direction;
-        }
     }
 };
 </script>
 
-
 <style>
-.swiper-container {
+.carousel {
     width: 450px;
-    height: 100px;
     overflow: hidden;
+    position: relative;
 }
 
-.swiper-wrapper img {
-    height: 90px;
-    width: 130px;
-}
-
-.swiper-slide {
-    text-align: center;
-    font-size: 18px;
-    background-color: #ffffff;
+.carousel-inner {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
+    transition: transform 0.5s ease-in-out;
 }
 
-.swiper-button-next {
-    position: absolute;
-    top: 110%;
-    right: 60.5%;
-    color: rgb(255, 255, 255);
-    border: 2px solid #000000;
+.carousel-item {
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+    width: 100%;
 }
 
-.swiper-button-prev {
+.carousel-item img {
+    width: 130px;
+    height: 90px;
+    object-fit: cover;
+}
+
+.carousel-control {
     position: absolute;
-    top: 110%;
-    left: 16.8%;
-    color: rgb(255, 255, 255);
-    border: 2px solid #000000;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.prev {
+    left: 0;
+}
+
+.next {
+    right: 0;
 }
 </style>

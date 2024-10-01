@@ -29,10 +29,20 @@ router.post('/register-shop', async (req, res) => {
         res.status(500).json({ message: 'Failed to register shop' });
     }
 });
-// shop.js
-// ตรวจสอบ endpoint การอัปเดตการติดตาม
-// shop.js
-router.post('/follow', async (req, res) => {
+router.get('/shopname', async (req, res) => {
+    const { shopId } = req.query;
+    try {
+        const shop = await Shop.findOne({ shopId });
+        if (!shop) {
+            return res.status(404).json({ message: 'Shop not found' });
+        }
+        res.status(200).json({ shopId: shop.shopId, shopName: shop.shopName });
+    } catch (error) {
+        console.error('Error retrieving shop name:', error);
+        res.status(500).json({ message: 'Failed to retrieve shop name' });
+    }
+});
+router.patch('/follow', async (req, res) => {
     try {
         const { email, shopId, followChange } = req.body;
         const shop = await Shop.findOne({ where: { shopId } });
@@ -46,7 +56,7 @@ router.post('/follow', async (req, res) => {
 
         if (followChange === 1) {
             if (!followedBy.includes(email)) {
-                followedBy.push(email);
+                followedBy.push(email); // เพิ่มอีเมล
                 followCount += 1;
             }
         } else if (followChange === -1) {
@@ -56,7 +66,7 @@ router.post('/follow', async (req, res) => {
             }
         }
 
-        // Update the shop with the new followedBy list and follow count
+        // อัปเดตเฉพาะค่า followedBy
         await shop.update({ followedBy, follow: followCount });
 
         res.status(200).json({ followCount });
@@ -65,6 +75,7 @@ router.post('/follow', async (req, res) => {
         res.status(500).json({ message: 'Failed to update follow status' });
     }
 });
+
 
 
 

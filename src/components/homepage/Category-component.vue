@@ -35,21 +35,21 @@ export default {
     showCommunityButtons() {
       this.showButtons = true;
       this.buttons = [
-        { id: 1, name: "ชุมชน 1" },
-        { id: 2, name: "ชุมชน 2" },
-        { id: 3, name: "ชุมชน 3" },
-        { id: 4, name: "ชุมชน 4" },
-        { id: 5, name: "ชุมชน 5" },
+        { id: 1, name: "ชุมชนบ้านท่าเกวียน" },
+        { id: 2, name: "ชุมชนบ้านนาต้นจั่น" },
+        { id: 3, name: "ชุมชนบ้านคลองมะเดื่อ" },
+        { id: 4, name: "ชุมชนบ้านตาลปัตร" },
+        { id: 5, name: "ชุมชนบ้านสวนเสือ" },
       ];
     },
     showCategoryButtons() {
       this.showButtons = true;
       this.buttons = [
-        { id: 1, name: "หมวดหมู่ 1" },
-        { id: 2, name: "หมวดหมู่ 2" },
-        { id: 3, name: "หมวดหมู่ 3" },
-        { id: 4, name: "หมวดหมู่ 4" },
-        { id: 5, name: "หมวดหมู่ 5" },
+        { id: 1, name: "ของใช้ในบ้าน" },
+        { id: 2, name: "เครื่องแต่งกาย" },
+        { id: 3, name: "อาหาร" },
+        { id: 4, name: "ของเล่น" },
+        { id: 5, name: "อุปกรณ์ทำงาน" },
       ];
     },
   },
@@ -69,6 +69,7 @@ export default {
   align-items: center;
   background-color: #ffffff;
   padding: 10px 0 20px 0;
+  border-radius: 20px;
 }
 
 .container {

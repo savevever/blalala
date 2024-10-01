@@ -7,7 +7,6 @@
 <script>
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Line } from 'vue-chartjs';
-import axios from 'axios';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -16,9 +15,14 @@ export default {
   components: {
     Line
   },
+  props: {
+    filteredProducts: {
+      type: Array,
+      required: true
+    }
+  },
   data() {
     return {
-      products: [],
       months: [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
@@ -80,39 +84,34 @@ export default {
     }
   },
   methods: {
-    async fetchProducts() {
-      try {
-        const response = await axios.get('http://localhost:8081/products/getGraph');
-        this.products = response.data;
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      }
-    },
     calculateMonthlyNetRevenue() {
-      const monthlyNetRevenue = Array(12).fill(0);
-      this.products.forEach(product => {
-        const { price, itemsSold, cogs, shippingCosts, month} = product;
-        const netRevenue = (price * itemsSold) - (cogs + shippingCosts);
-        const monthIndex = this.months.indexOf(month.charAt(0).toUpperCase() + month.slice(1).toLowerCase());
-        if (monthIndex !== -1) {
-          monthlyNetRevenue[monthIndex] += netRevenue;
+        const monthlyNetRevenue = Array(12).fill(0);
+        console.log(this.filteredProducts);
+        
+        if (this.filteredProducts && Array.isArray(this.filteredProducts)) { // ตรวจสอบว่า filteredProducts มีค่า
+            this.filteredProducts.forEach(product => {
+                const { totalPrice, createdAt } = product;
+                const month = new Date(createdAt).getMonth(); // ดึงเดือนจาก createdAt
+                if (month !== -1) {
+                    monthlyNetRevenue[month] += totalPrice; // ใช้ totalPrice เป็นค่าที่ต้องการ
+                }
+            });
         }
-      });
-      console.log(monthlyNetRevenue);
-      return monthlyNetRevenue;
+
+        console.log(monthlyNetRevenue);
+        return monthlyNetRevenue;
     }
-  },
-  async created() {
-    await this.fetchProducts();
-  }
+}
+
 };
 </script>
 
 
 
+
 <style scoped>
 .container {
-    width: 700px;
-    height: 250px;
+  width: 700px;
+  height: 250px;
 }
 </style>

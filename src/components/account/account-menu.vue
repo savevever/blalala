@@ -2,19 +2,19 @@
     <div id="Purchase-history-left">
         <div class="user">
             <div class="user-title" @click="toggleVisibility">
-                <h3>การซื้อ</h3>
+                <h3>ผู้ซื้อ</h3>
                 <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
             </div>
             <p v-show="isVisible"><router-link to="/users/PurchaseHistory"
                     class="custom-link">ประวัติการซื้อ</router-link></p>
             <p v-show="isVisible"><router-link to="/users/cart" class="custom-link">ตะกร้าสินค้า</router-link></p>
             <p v-show="isVisible"><router-link to="/users/locationAdress" class="custom-link">ที่อยู่</router-link></p>
-            <p v-show="isVisible"><router-link to="/users/setting" class="custom-link">ตั้งค่าการแจ้งเตือน</router-link>
+            <p v-show="isVisible"><router-link to="/users/setting" class="custom-link">ตั้งค่าบัญชี</router-link>
             </p>
         </div>
         <div v-if="userRole === 'seller'" class="user">
             <div class="user-title" @click="toggleVisibility2">
-                <h3>การซื้อ</h3>
+                <h3>ผู้ขาย</h3>
                 <font-awesome-icon :icon="['fas', 'caret-down']" class="icon" />
             </div>
             <p v-show="isVisible2"><router-link to="/users/Business" class="custom-link">ดูผลประกอบการ</router-link></p>

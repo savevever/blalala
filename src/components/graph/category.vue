@@ -15,9 +15,14 @@ export default {
     components: {
         Line
     },
+    props: {
+        filteredProducts: {
+            type: Array,
+            required: true
+        }
+    },
     data() {
         return {
-            dailyIncome: 20, // กำหนดรายได้รายวันที่นี่เพื่อสามารถปรับเปลี่ยนได้อย่างง่ายดายถ้าจำเป็น
             chartOptions: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -35,7 +40,7 @@ export default {
                     x: {
                         title: {
                             display: true,
-                            text: 'Month',
+                            text: 'Category',
                             font: {
                                 size: 14,
                                 weight: 'bold',
@@ -45,7 +50,7 @@ export default {
                     y: {
                         title: {
                             display: true,
-                            text: 'Total Sales',
+                            text: 'ยอดขาย',
                             font: {
                                 size: 14,
                                 weight: 'bold',
@@ -59,19 +64,11 @@ export default {
     },
     computed: {
         computedChartData() {
-            const labels = [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ];
-            const data = labels.map((month, index) => {
-                const year = 2024;
-                const daysInMonth = new Date(year, index + 1, 0).getDate();
-                return daysInMonth * this.dailyIncome;
-            });
-            return {    
+            const { labels, data } = this.calculateTotalSellByCategory();
+            return {
                 labels,
                 datasets: [{
-                    label: 'กำไรต่อเดือน',
+                    label: 'ยอดขายตามหมวดหมู่ของสินค้า',
                     backgroundColor: '#00cc00',
                     borderColor: '#00cc00',
                     pointRadius: 1,
@@ -80,9 +77,34 @@ export default {
                 }]
             };
         }
+    },
+    methods: {
+        calculateTotalSellByCategory() {
+            const categoryData = {};
+
+            // สะสมยอดขายตามหมวดหมู่
+            this.filteredProducts.forEach(product => {
+                const { category, totalSell } = product;
+                if (!categoryData[category]) {
+                    categoryData[category] = 0;
+                }
+                categoryData[category] += totalSell; // บวกยอดขายเข้ากับหมวดหมู่
+            });
+
+            // แปลงข้อมูลให้เป็นอาร์เรย์และจัดเรียง
+            const sortedCategories = Object.entries(categoryData)
+                .map(([category, totalSell]) => ({ category, totalSell }))
+                .sort((a, b) => b.totalSell - a.totalSell); // เรียงจากมากไปน้อย
+
+            const labels = sortedCategories.map(item => item.category);
+            const data = sortedCategories.map(item => item.totalSell);
+
+            return { labels, data };
+        }
     }
 };
 </script>
+
 
 <style scoped>
 .container {

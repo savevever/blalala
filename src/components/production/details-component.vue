@@ -59,7 +59,8 @@ export default {
 
 #detail-container {
     width: 1200px;
-    height: 500px;
+    height: auto;
+    max-height: 500px;
     background-color: rgb(255, 255, 255);
     /* margin-right: 60px; */
     margin-bottom: 30px;

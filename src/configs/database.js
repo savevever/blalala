@@ -16,10 +16,7 @@ const User = sequelize.define('User', {
     image: {
         type: DataTypes.JSONB, allowNull: true
     },
-    // isVerified: {
-    //     type: Sequelize.BOOLEAN,
-    //     defaultValue: false
-    // },
+    isConfirmed:{ type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
 });
 
 const Product = sequelize.define('Product', {
@@ -73,7 +70,7 @@ const Shop = sequelize.define('Shop', {
         primaryKey: true,
         allowNull: false
     },
-    image: { type: DataTypes.STRING, allowNull: true },
+    image: { type: DataTypes.JSONB, allowNull: true },
     shopName: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false },
     phoneNumber: { type: DataTypes.STRING, allowNull: false },
@@ -119,8 +116,8 @@ const ProductTest = sequelize.define('ProductTest', {
     }, shopId: {
         type: DataTypes.STRING,
         references: {
-            model: Shop, // ชื่อโมเดลที่เชื่อมโยง
-            key: 'shopId' // ฟิลด์ในโมเดล Shop ที่ใช้เชื่อมโยง
+            model: Shop, 
+            key: 'shopId' 
         },
         allowNull: false
     },
@@ -129,14 +126,9 @@ const ProductTest = sequelize.define('ProductTest', {
     }, totalPrice: {
         type: DataTypes.FLOAT, allowNull: true
     },
+    likes: { type: DataTypes.INTEGER, default: 0 }
 },
-    // {
-    //     hooks: {
-    //         beforeCreate: (product) => {
-    //             product.invoiceNo = product.id; 
-    //         }
-    //     }
-    // }
+    
 );
 const history = sequelize.define('history', {
     id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
@@ -295,10 +287,14 @@ const comment = sequelize.define('comment', {
         allowNull: true,
     },
     star: { type: DataTypes.STRING, allowNull: true },
-    shopId: { type: DataTypes.STRING, allowNull: false, unique: true },
     email: { type: DataTypes.STRING, allowNull: true },
+    productId:{ type: DataTypes.STRING, allowNull: false, },
+    AcImg: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+    },
+    AcName: { type: DataTypes.STRING, allowNull: true },
 });
-// การสร้างความสัมพันธ์
 Shop.hasMany(ProductTest, { foreignKey: 'shopId', sourceKey: 'shopId' });
 ProductTest.belongsTo(Shop, { foreignKey: 'shopId', targetKey: 'shopId' });
 module.exports = { sequelize, User, Product, Shop, Selling, ProductTest, history, cart, Payment, seller, location, account, comment };

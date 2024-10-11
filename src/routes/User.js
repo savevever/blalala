@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { User, location } = require('../configs/database');
 const nodemailer = require('nodemailer');
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
-const {sendOtp} = require('./forgotPassword');
+const { sendOtp } = require('./forgotPassword');
 
 router.get('/', async (req, res) => {
     try {
@@ -47,7 +47,83 @@ router.get('/address', async (req, res) => {
         res.status(500).json({ message: 'Failed to retrieve address' });
     }
 });
+router.delete('/register', async (req, res) => {
+    try {
+        await User.destroy({
+            where: {}
+        });
 
+        res.status(200).json({ message: 'All shops deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting shops:', error);
+        res.status(500).json({ message: 'Failed to delete shops' });
+    }
+});
+router.post('/register', async (req, res) => {
+    const { name, email, password, ConfirmPassword, role } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            ConfirmPassword,
+            role,
+            isConfirmed: false 
+        });
+
+        const confirmationToken = jwt.sign({ id: newUser.id }, JWT_SECRET, { expiresIn: '1h' });
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'savevever1@gmail.com',
+                pass: 'bhdp jvok kvzv uqoz' 
+            }
+        });
+
+        const mailOptions = {
+            from: 'savevever1@gmail.com',
+            to: email,
+            subject: 'Email Confirmation',
+            html: `<p>ยืนยันอีเมลล์:</p><a href="http://localhost:8081/users/confirm-email?token=${confirmationToken}">คลิกที่นี่เพื่อยืนยัน</a>`
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log('เกิดข้อผิดพลาดในการส่งอีเมลยืนยัน:', error);
+            } else {
+                console.log('ส่งอีเมลยืนยันแล้ว: ' + info.response);
+            }
+        });
+
+        res.status(201).json(newUser);
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดระหว่างการลงทะเบียน:', error);
+        res.status(500).send('เกิดข้อผิดพลาดระหว่างการลงทะเบียน');
+    }
+});
+
+router.get('/confirm-email', async (req, res) => {
+    const { token } = req.query;
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const user = await User.findByPk(decoded.id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'ไม่พบผู้ใช้' });
+        }
+
+        user.isConfirmed = true; 
+        await user.save();
+
+        res.redirect('http://localhost:8080/users/login'); 
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการยืนยันอีเมล:', error);
+        res.status(500).send('เกิดข้อผิดพลาดในการยืนยันอีเมล');
+    }
+});
 router.put('/address', async (req, res) => {
     const { email, name, district, postalCode, province, address } = req.body;
 
@@ -69,23 +145,6 @@ router.put('/address', async (req, res) => {
     } catch (error) {
         console.error('Error during address update:', error);
         res.status(500).send('Error during address update');
-    }
-});
-router.post('/register', async (req, res) => {
-    const { name, email, password, ConfirmPassword, role } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            ConfirmPassword,
-            role
-        });
-        res.status(201).json(newUser);
-    } catch (error) {
-        console.error('Error during registration:', error);
-        res.status(500).send('Error during registration');
     }
 });
 router.put('/updatepassword', async (req, res) => {
@@ -154,7 +213,7 @@ router.post('/updateRoleToSeller', async (req, res) => {
     }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res) => { 
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ where: { email } });
@@ -162,26 +221,6 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
         const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'savevever1@gmail.com',
-                pass: 'bhdp jvok kvzv uqoz'
-            }
-        });
-        const mailOptions = {
-            from: 'savevever1@gmail.com',
-            to: email,
-            subject: 'Login Notification',
-            text: 'You have successfully logged in!'
-        };
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log('Error sending email:', error);
-            } else {
-                console.log('Email sent: ' + info.response);
-            }
-        });
         return res.status(200).json({ message: 'Login successful', user, token });
     } catch (error) {
         console.error('Error logging in user:', error);
@@ -207,7 +246,7 @@ router.post('/forgotpassword', async (req, res) => {
             return res.status(200).json({ message: 'OTP verified successfully' });
 
         } else {
-            const forgotPassword = await sendOtp(email);    
+            const forgotPassword = await sendOtp(email);
             req.session.otp = forgotPassword.otp;
             req.session.email = email;
 

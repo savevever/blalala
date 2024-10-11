@@ -23,7 +23,7 @@
                     <a href="/users/register" class="formregister">Register</a>
                 </div>
                 <div class="forgotPassword">
-                    <a href="/users/OTP" class="formregister">Register</a>
+                    <a href="/users/OTP" class="formregister">forgotPassword</a>
                 </div>
                 <button type="submit" class="submit-btn">Log in</button>
             </form>

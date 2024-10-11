@@ -4,9 +4,10 @@
             <div class="title">
                 <h2>Register</h2>
             </div>
-            <ul>
-                <li v-for="error in errors" :key="error.id" class="msg">{{ error.message }}</li>
+            <ul v-if="messages.error">
+                <li v-for="(error, index) in messages.error" :key="index" class="msg">{{ error }}</li>
             </ul>
+            <p v-if="messages.success_msg" class="msg success">{{ messages.success_msg }}</p>
             <form @submit.prevent="registerUser" class="input-group-register">
                 <div class="user-box">
                     <input type="text" v-model="name" name="name" class="input-field" required />
@@ -26,7 +27,9 @@
                     <label>Confirm Password</label>
                 </div>
                 <div class="login-register">
-                    <router-link to="/users/login"><p>Login</p></router-link>
+                    <router-link to="/users/login">
+                        <p>Login</p>
+                    </router-link>
                 </div>
                 <button type="submit" class="submit-btn">Register</button>
             </form>
@@ -44,7 +47,7 @@ export default {
             password: '',
             ConfirmPassword: '',
             messages: {
-                error: '',
+                error: [],
                 success_msg: ''
             }
         };
@@ -68,9 +71,11 @@ export default {
                     this.messages.success_msg = '';
                 });
         }
+
     }
 };
 </script>
+
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Poetsen+One&display=swap');

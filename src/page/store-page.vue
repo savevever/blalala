@@ -3,19 +3,14 @@
         <div id="storeContainer">
             <div id="storeLeft">
                 <div id="storeLeftIMG">
-                    <img src="../assets/1.png" alt="Store Image">
+                    <img :src="this.StoreImage ? this.StoreImage : require('@/assets/1.png')" alt="Store Image">
                 </div>
                 <div id="storeLeftTXT">
                     <p id="namestore">{{ shopName }}</p>
-                    <p>Active 4 นาที ที่ผ่านมา</p>
                     <div id="storeLeftButton">
                         <button @click="handleToggleFollow">
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
                             <p>{{ StoreFollow ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
-                        </button>
-                        <button>
-                            <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
-                            <p>แชท</p>
                         </button>
                         <button>
                             <font-awesome-icon :icon="['fas', 'house']" class="font-awesome" />
@@ -28,7 +23,6 @@
             <div id="storeRight">
                 <p>คะแนน: 51.9พัน</p>
                 <p>รายการสินค้า:<span>{{ filteredProducts.length }}</span></p>
-                <!-- <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p> -->
                 <p>เข้าร่วมเมื่อ: {{createdAt}}</p>
                 <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
             </div>
@@ -36,7 +30,7 @@
         <div class="products-container">
             <div v-for="product in filteredProducts" :key="product.id" class="originalDiv">
                 <div class="products-items">
-                    <div @click="selectProduct(product)">
+                    <div>
                         <router-link :to="{ path: '/users/production', query: { productId: product.id } }">
                             <img :src="product.images[0].src" alt="Product Image" />
                         </router-link>
@@ -76,28 +70,20 @@ export default {
             StoreFollow: false,
             followerCount: 0,
             userEmail: '',
-            createdAt:''
+            createdAt:'',
+            StoreImage:""
         };
     },
 
     async mounted() {
         const user = localStorage.getItem('user');
-        // ตรวจสอบว่ามีข้อมูลผู้ใช้หรือไม่
         if (user) {
             try {
-                // แปลง JSON เป็นอ็อบเจ็กต์
                 const userObject = JSON.parse(user);
-
-                // เข้าถึงค่า email
                 this.userEmail = userObject.email;
-                console.log('User email:', this.userEmail); // ควรแสดงค่าอีเมลที่ถูกต้อง
-
-                // ดำเนินการต่อกับ productId และ shopId
                 this.productId = new URLSearchParams(window.location.search).get('productId');
-                if (this.productId) {
-                    this.fetchProductDetails();
-                    this.fetchShopDetails();
-                }
+                this.fetchProductDetails();
+                this.fetchShopDetails();
             } catch (error) {
                 console.error('Error parsing user from localStorage:', error);
             }
@@ -116,13 +102,12 @@ export default {
                 const response = await axios.get("http://localhost:8081/selling/productss");
                 this.products = response.data || [];
 
-                console.log('Product Details:', this.products); // ล็อกข้อมูลสินค้า
-
+                console.log('Product Details:', this.products); 
                 if (response.data && response.data.length > 0) {
                     const product = response.data.find(product => product.id == this.productId);
                     if (product) {
                         this.shopId = product.shopId;
-                        console.log('Shop ID:', this.shopId); // ล็อก shopId
+                        console.log('Shop ID:', this.shopId);
                     } else {
                         console.error('Product not found');
                     }
@@ -142,8 +127,9 @@ export default {
                     if (shop) {
                         this.shopName = shop.shopName;
                         this.createdAt = new Date(shop.createdAt).toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
-                        this.StoreFollow = shop.isFollowing; // ใช้ค่า isFollowing ที่ได้รับจาก API
-                        this.followerCount = shop.follow; // ตั้งค่า followerCount ตามข้อมูลที่ได้รับ
+                        this.StoreFollow = shop.isFollowing; 
+                        this.followerCount = shop.follow; 
+                        this.StoreImage = shop.image;
                         this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
                         console.log('Shop details:', shop);
                     } else {
@@ -157,28 +143,17 @@ export default {
         ,
         async handleToggleFollow() {
             try {
-                console.log('shopId:', this.shopId);
-                console.log('userEmail:', this.userEmail);
                 if (this.shopId !== null && this.userEmail) {
                     const followChange = this.StoreFollow ? -1 : 1;
-                    console.log("Toggling follow status");
 
-                    // ส่งข้อมูลไปยัง API เพื่ออัปเดตสถานะการติดตาม
-                    const response = await axios.post('http://localhost:8081/shop/follow', {
+                    const response = await axios.patch('http://localhost:8081/shop/follow', {
                         email: this.userEmail,
                         shopId: this.shopId,
                         followChange: followChange
                     });
 
-                    // อัปเดตสถานะการติดตามและจำนวนผู้ติดตาม
                     this.StoreFollow = !this.StoreFollow;
                     this.followerCount = response.data.followCount;
-
-                    console.log('Follow Status:', this.StoreFollow);
-                    console.log('Follower Count:', this.followerCount);
-
-                    // ดึงข้อมูลร้านค้าใหม่เพื่ออัปเดต UI
-                    await this.fetchShopDetails();
                 }
             } catch (error) {
                 console.error('Error toggling follow status:', error);

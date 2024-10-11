@@ -201,19 +201,30 @@ export default {
             }
         },
         async removeFromCart(productId) {
-        try {
-            await axios.delete(`http://localhost:8081/products/delCart/${productId}`);   
-            this.cartItems = this.cartItems.filter(item => item.id !== productId);
-            this.totalItems = this.cartItems.length;
-        } catch (error) {
-            console.error('Error removing product from cart:', error);
-        }
-    },
-        clearCart() {
-            const itemsToRemove = this.cartItems.filter(product => product.checkbox);
-            itemsToRemove.forEach(product => {
-                this.removeFromCart(product.id);
-            });
+            try {
+                await axios.delete(`http://localhost:8081/products/delCart/${productId}`);
+                this.cartItems = this.cartItems.filter(item => item.id !== productId);
+                this.totalItems = this.cartItems.length;
+            } catch (error) {
+                console.error('Error removing product from cart:', error);
+            }
+        },
+        async clearCart() {
+            const itemsToRemove = this.selectedItems.filter(product => product.checkbox);
+
+            try {
+                // Send a delete request for each selected product
+                for (const product of itemsToRemove) {
+                    await axios.delete(`http://localhost:8081/delCart/delHistory/${product.productId}`);
+                    console.log(`Deleted product with ID: ${product.productId}`);
+                }
+
+                // After removing the items, refresh the history
+                await this.loadHistory();
+
+            } catch (error) {
+                console.error('Error canceling orders:', error);
+            }
         },
         selectAllbutton(allItems) {
             allItems.forEach(product => {
@@ -362,15 +373,18 @@ export default {
     align-items: center;
     gap: 14rem;
 }
-.item-1 p{
+
+.item-1 p {
     display: flex;
     width: 100px;
     align-items: center;
 }
+
 .item-1 span {
     font-size: 24px;
 }
-.product-line-price{
+
+.product-line-price {
     display: flex;
     width: 70px;
 }

@@ -54,19 +54,20 @@ router.patch('/follow', async (req, res) => {
         let followedBy = shop.followedBy || [];
         let followCount = shop.follow || 0;
 
+        // ถ้า followChange = 1 ให้ติดตาม ถ้า followChange = -1 ให้ยกเลิกการติดตาม
         if (followChange === 1) {
             if (!followedBy.includes(email)) {
-                followedBy.push(email); // เพิ่มอีเมล
+                followedBy.push(email); // เพิ่มอีเมลเข้าไปในรายการติดตาม
                 followCount += 1;
             }
         } else if (followChange === -1) {
             if (followedBy.includes(email)) {
-                followedBy = followedBy.filter(followedEmail => followedEmail !== email);
+                followedBy = followedBy.filter(followedEmail => followedEmail !== email); // ลบอีเมลออกจากรายการติดตาม
                 followCount -= 1;
             }
         }
 
-        // อัปเดตเฉพาะค่า followedBy
+        // อัปเดตค่าการติดตาม
         await shop.update({ followedBy, follow: followCount });
 
         res.status(200).json({ followCount });
@@ -110,7 +111,6 @@ router.get('/shopsFollow', async (req, res) => {
 
 router.get('/shops', async (req, res) => {
     try {
-        // ดึงข้อมูลทั้งหมดจากฐานข้อมูล
         const shops = await Shop.findAll();
 
         // ส่งข้อมูลกลับไปที่ client
@@ -135,5 +135,20 @@ router.delete('/shops', async (req, res) => {
         res.status(500).json({ message: 'Failed to delete shops' });
     }
 });
-
+router.put('/account', async (req, res) => {
+    const { email, image } = req.body; 
+    try {
+        const shop = await Shop.findOne({ email });
+        if (!shop) {
+            console.error('User not found with email:', email);
+            return res.status(404).send('User not found');
+        }
+        shop.image = image;
+        await shop.save(); 
+        res.status(200).json(shop); 
+    } catch (error) {
+        console.error('Error during update:', error);
+        res.status(500).send('Error during update');
+    }
+});
 module.exports = router;

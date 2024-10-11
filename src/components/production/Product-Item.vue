@@ -2,14 +2,11 @@
     <div id="container">
         <div id="containerProductItem">
             <div id="ProductItem">
-                <!-- Product Item Header -->
                 <div id="ProductItemHead">
-                    <!-- Product Image -->
                     <div id="ProductItemImg">
                         <img :src="product && product.images && product.images.length > 0 ? product.images[0].src : '../../assets/default.png'"
                             id="Image" />
                     </div>
-                    <!-- Product Details -->
                     <div id="ProductItemTxt">
                         <div>
                             <h2>{{ product ? product.nameProduct : 'Loading...' }}</h2>
@@ -42,7 +39,8 @@
                                 <span>{{ count }}</span>
                                 <button @click="increment">+</button>
                             </div>
-                            <p>มีสินค้าทั้งหมด:<span>{{ product ? product.numberProducts : 'Loading...' }}</span> ชิ้น</p>
+                            <p>มีสินค้าทั้งหมด:<span>{{ product ? product.numberProducts : 'Loading...' }}</span> ชิ้น
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -82,7 +80,8 @@ export default {
         return {
             count: 0,
             selectedOptions: [],
-            filteredProducts: []
+            filteredProducts: [],
+            isPressedHeart:"like"
         };
     },
     computed: {
@@ -95,7 +94,7 @@ export default {
             }, 0);
         },
         isProductTypeSelected() {
-            return this.selectedOptions.length > 0 && this.count>0;
+            return this.selectedOptions.length > 0 && this.count > 0;
         }
     },
     methods: {
@@ -118,7 +117,6 @@ export default {
                 console.error('Error fetching shop details:', error);
             }
         },
-        
         fetchProductDetails(productId) {
             console.log('Fetching product details for ID:', productId);
             axios.get('http://localhost:8081/selling/productss')
@@ -211,9 +209,21 @@ export default {
             this.selectedOptions[index] = option;
             console.log('Selected options:', this.selectedOptions);
         },
-        handleToggleLike() {
+        async handleToggleLike() {
             if (this.product) {
-                // Handle the like toggle here, possibly using Vuex or another method
+                const productId = this.product.id;
+                console.log(productId);
+                console.log(this.isPressedHeart);
+                const url = `http://localhost:8081/products/product/${productId}/${this.isPressedHeart ? 'unlike' : 'like'}`;
+
+                try {
+                    const response = await axios.put(url);
+                    console.log(response.data.message);
+
+                    this.isPressedHeart = !this.isPressedHeart;
+                } catch (error) {
+                    console.error("Error toggling like:", error);
+                }
             }
         },
         increment() {
@@ -231,7 +241,7 @@ export default {
             return this.product.price * this.count;
         },
         handleAddToHistory() {
-            const totalAmount =  this.calculateLinePrice().toFixed(2);
+            const totalAmount = this.calculateLinePrice().toFixed(2);
             if (this.isProductTypeSelected) {
                 // const amountString = this.product.price.toString();
                 const ProductIDString = this.product.id.toString();
@@ -464,6 +474,7 @@ router-link {
     /* color: #ffffff; */
     cursor: pointer;
 }
+
 #quantitycount button {
     width: 30px;
     font-size: 20px;

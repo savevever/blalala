@@ -62,13 +62,13 @@ import axios from 'axios';
 export default {
     data() {
         return {
-            email: '',  // ดึงค่า email จาก localStorage หรือที่เก็บข้อมูลที่เหมาะสม
+            email: '',  
             gender: '',
             date: '',
             images: [],
             nextImageId: 1,
             UserName:"",
-            name:""
+            name:"",
         };
     },
     mounted() {
@@ -78,6 +78,7 @@ export default {
         this.name = userObject.name;
     },
     methods: {
+        
         removeImage(index) {
             this.images.splice(index, 1);
         },
@@ -156,6 +157,7 @@ export default {
 
                 const response = await axios.put('http://localhost:8081/users/account', payload);
                 user.name = payload.name;
+                user.image = payload.image;
                 localStorage.setItem('user', JSON.stringify(user));
                 console.log('Updated user:', response.data);
                 

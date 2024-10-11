@@ -18,14 +18,17 @@
                                 </div>
                                 <div class="item-2">
                                     <p>ตัวเลือก:<span>{{ product.productTypes }}</span></p>
+                                    <router-link :to="{ path: '/selling/reviewPage', query: { productId: product.productId } }"><button>ให้คะเเนน</button></router-link>
                                     <p>{{ product.price }} บาท</p>
                                 </div>
                             </div>
                             <!-- <div class="line"></div> -->
                         </div>
                         <div class="item-button">
-                            <button @click="reorder(product)">สั่งซื้ออีกครั้ง</button>
-                            <button @click="cancelOrder(product.id)">ยกเลิกคำสั่งซื้อ</button>
+                            <!-- <button @click="reorder(product)">สั่งซื้ออีกครั้ง</button> -->
+                            <button @click="handleClick">สั่งซื้ออีกครั้ง</button>
+                            <!-- <button @click="cancelOrder(product.productId)">ยกเลิกคำสั่งซื้อ</button> -->
+                            <button @click="cancelOrder">ลบรายการสินค้า</button>
                         </div>
                     </div>
                 </div>
@@ -97,17 +100,21 @@ export default {
         reorder(product) {
             console.log('Reordering product:', product);
         },
-        async cancelOrder(productId) {
-            console.log(productId);
+        async cancelOrder() {
+            const itemsToRemove = this.selectedItems.filter(product => product.checkbox);
 
             try {
-                const response = await axios.delete(`http://localhost:8081/products/delHistory/${productId}`);
-                console.log(response.data);  // Log response
+                // Send a delete request for each selected product
+                for (const product of itemsToRemove) {
+                    await axios.delete(`http://localhost:8081/products/delHistory/${product.productId}`);
+                    console.log(`Deleted product with ID: ${product.productId}`);
+                }
 
-                // หลังจากลบเสร็จแล้ว ให้โหลดประวัติใหม่
+                // After removing the items, refresh the history
                 await this.loadHistory();
+
             } catch (error) {
-                console.error('Error canceling order:', error);
+                console.error('Error canceling orders:', error);
             }
         },
         gotoPage(page) {
@@ -227,10 +234,14 @@ p {
     display: flex;
     gap: 70px;
     margin-left: 70px;
+    align-items: center;
 }
 
 .item-2 span {
     font-size: 20px;
+}
+.item-2 button {
+    height: 40px;
 }
 
 .item-1 span {

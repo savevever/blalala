@@ -4,21 +4,16 @@
             <div id="storeLeft">
                 <div id="storeLeftIMG">
                     <router-link :to="{ path: '/store/storepage', query: { productId: productId } }">
-                        <img src="../../assets/1.png" alt="">
+                        <img :src="StoreImage ? StoreImage : require('@/assets/1.png')" alt="Store Image">
                     </router-link>
                 </div>
                 <div id="storeLeftTXT">
                     <p id="namestore">{{ shopName }}</p>
-                    <p>Active 4 นาที ที่ผ่านมา</p>
                     <div id="storeLeftButton">
                         <button @click="handleToggleFollow">
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
                             <p>{{ StoreFollow ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
                         </button>
-                        <!-- <button>
-                            <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
-                            <p>แชท</p>
-                        </button> -->
                         <button>
                             <font-awesome-icon :icon="['fas', 'house']" class="font-awesome" />
                             <p>หน้าร้าน</p>
@@ -29,9 +24,8 @@
             <div id="line"></div>
             <div id="storeRight">
                 <p>คะแนน: 51.9พัน</p>
-                <p>รายการสินค้า: 199</p>
-                <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p>
-                <p>เข้าร่วมเมื่อ: 24เดือนที่ผ่านมา</p>
+                <p>รายการสินค้า:<span>{{ filteredProducts.length }}</span></p>
+                <p>เข้าร่วมเมื่อ: {{createdAt}}</p>
                 <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
             </div>
         </div>
@@ -57,25 +51,42 @@ export default {
             productId: null,
             StoreFollow: false,
             followerCount: 0,
+            filteredProducts: [],
+            StoreImage: "",
+            products: [], 
+            userEmail: ''
         };
     },
     async mounted() {
-        // Get productId from the URL
+        const user = localStorage.getItem('user');
+        if (user) {
+            try {
+                const userObject = JSON.parse(user);
+                this.userEmail = userObject.email;
+                this.productId = new URLSearchParams(window.location.search).get('productId');
+                this.fetchProductDetails();
+                this.fetchShopDetails();
+            } catch (error) {
+                console.error('Error parsing user from localStorage:', error);
+            }
+        } else {
+            console.warn('No user found in localStorage');
+        }
         this.productId = new URLSearchParams(window.location.search).get('productId');
-
         if (this.productId) {
             await this.fetchProductDetails();
             await this.fetchShopDetails();
-        }
+        }  
     },
     methods: {
         async fetchProductDetails() {
             try {
                 const response = await axios.get("http://localhost:8081/selling/productss");
+                this.products = response.data || [];
                 if (response.data && response.data.length > 0) {
                     const product = response.data.find(product => product.id == this.productId);
                     if (product) {
-                        this.shopId = product.shopId; // Store the shopId from the product
+                        this.shopId = product.shopId; 
                     } else {
                         console.error('Product not found');
                     }
@@ -87,64 +98,52 @@ export default {
             }
         },
 
-        async fetchShopDetails() {
+        fetchShopDetails() {
             try {
                 if (this.shopId) {
-                    const response = await axios.get('http://localhost:8081/shop/shops', {
-                        params: { email: this.userEmail }
-                    });
-                    const shops = response.data.data || [];
-                    const shop = shops.find(shop => shop.shopId === this.shopId);
-                    if (shop) {
-                        this.shopName = shop.shopName;
-                        this.StoreFollow = shop.isFollowing; 
-                        this.followerCount = shop.follow; 
-                        this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
-                        console.log('Shop details:', shop);
-                    } else {
-                        console.error('Shop not found');
-                    }
+                    axios.get('http://localhost:8081/shop/shops')
+                        .then(response => {
+                            const shops = response.data.data || [];
+                            const shop = shops.find(shop => shop.shopId === this.shopId);
+                            if (shop) {
+                                this.shopName = shop.shopName;
+                                this.createdAt = new Date(shop.createdAt).toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
+                                this.StoreFollow = shop.isFollowing;
+                                this.followerCount = shop.follow;
+                                this.StoreImage = shop.image;
+                                this.filteredProducts = this.products.filter(product => product.shopId === this.shopId); 
+                            } else {
+                                console.error('Shop not found');
+                            }
+                        });
                 }
             } catch (error) {
                 console.error('Error fetching shop details:', error);
             }
-        }
+        },
 
-        ,
         async handleToggleFollow() {
             try {
-                console.log('shopId:', this.shopId);
-                console.log('userEmail:', this.userEmail);
                 if (this.shopId !== null && this.userEmail) {
                     const followChange = this.StoreFollow ? -1 : 1;
-                    console.log("Toggling follow status");
 
-                    // ส่งข้อมูลไปยัง API เพื่ออัปเดตสถานะการติดตาม
-                    const response = await axios.post('http://localhost:8081/shop/follow', {
+                    const response = await axios.patch('http://localhost:8081/shop/follow', {
                         email: this.userEmail,
                         shopId: this.shopId,
                         followChange: followChange
                     });
 
-                    // อัปเดตสถานะการติดตามและจำนวนผู้ติดตาม
                     this.StoreFollow = !this.StoreFollow;
                     this.followerCount = response.data.followCount;
-
-                    console.log('Follow Status:', this.StoreFollow);
-                    console.log('Follower Count:', this.followerCount);
-
-                    // ดึงข้อมูลร้านค้าใหม่เพื่ออัปเดต UI
-                    await this.fetchShopDetails();
                 }
             } catch (error) {
                 console.error('Error toggling follow status:', error);
             }
         }
-
-
     }
 };
 </script>
+
 
 
 

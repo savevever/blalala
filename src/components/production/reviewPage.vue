@@ -8,7 +8,6 @@
             <img :src="productImage" alt="Product Image" class="image">
             <p>{{ productPrice }} บาท</p>
         </div>
-
         <!-- คะแนนดาว -->
         <div class="star-container">
             <div class="star-widget">
@@ -108,14 +107,12 @@ export default {
                 .then(response => {
                     console.log('Response Data:', response.data);
                     if (response.data && response.data.length > 0) {
-                        // ค้นหาสินค้าตาม productId ที่ได้รับจาก URL
                         const product = response.data.find(product => product.id == productId);
                         if (product) {
-                            // อัพเดทข้อมูลสินค้าใน component
                             this.productTitle = product.nameProduct;
                             this.productPrice = product.price;
                             if (product.imageList && product.imageList.length > 0) {
-                                this.productImage = product.imageList[0].src;
+                                this.productImage = product.images[0].src;
                             } else {
                                 this.productImage = '../../assets/default.png';
                             }
@@ -171,6 +168,7 @@ export default {
             return user ? user.email : null;
         },
         addToComment() {
+            const user = JSON.parse(localStorage.getItem('user'));
             const productData = {
                 nameProduct: this.productTitle,
                 imageProduct: this.productImage,
@@ -182,12 +180,16 @@ export default {
                 }))),
                 star: this.rating,
                 shopId: this.productId,
-                email: this.userEmail()
+                email: this.userEmail(),
+                productId: this.productId,
+                AcImg: user.image,
+                AcName: user.name,         
             };
             console.log('Product Data for History:', productData);
             axios.post(`http://localhost:8081/products/createComment`, productData)
                 .then(response => {
                     console.log("Product added to history:", response.data);
+                    window.location.href = `http://localhost:8080/users/production?productId=${this.productId}`;
                 })
                 .catch(error => {
                     console.error("Error details:", error.response.data);

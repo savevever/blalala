@@ -6,45 +6,53 @@
             </div>
             <nav>
                 <ul id="MenuItems">
-                    <li><router-link to="/">Home</router-link></li>
-                    <li :class="{ disabled: userRole() === 'seller' }">
-                        <router-link v-if="userRole() !== 'seller'" to="/selling/FormOneSeller">Start Selling</router-link>
+                    <li @click="redirectIfNotLoggedIn('/')"><router-link to="/">Home</router-link></li>
+                    <li :class="{ disabled: userRole() === 'seller' }"
+                        @click="redirectIfNotLoggedIn('/selling/FormOneSeller')">
+                        <router-link v-if="userRole() !== 'seller'" to="/selling/FormOneSeller">Start
+                            Selling</router-link>
                         <span v-else>Start Selling</span>
                     </li>
-                    <!-- <li><router-link to="/users/Center">Center</router-link></li> -->
-                    <li v-if="!isLoggedIn"><router-link to="/users/login">Login</router-link></li>
-                    <!-- <li v-if="isLoggedIn"><a @click="logout">Logout</a></li> -->
+                    <li v-if="!isLoggedIn" @click="redirectIfNotLoggedIn('/users/login')">
+                        <router-link to="/users/login">Login</router-link>
+                    </li>
                     <li>
                         <div class="profile">
-                            <router-link to="/users/setting">
-                                <font-awesome-icon :icon="['fas', 'circle-user']" id="icon"
+                            <router-link to="/users/setting" @click="redirectIfNotLoggedIn('/users/setting')">
+                                <img v-if="profileImage" :src="profileImage" alt="User Profile" class="profile-image"
+                                    @click="toggleMenu" />
+                                <font-awesome-icon v-else :icon="['fas', 'circle-user']" id="icon"
                                     @click="toggleMenu"></font-awesome-icon>
                             </router-link>
                             <p v-if="isLoggedIn"><router-link to="/users/setting">{{ userName }}</router-link></p>
                         </div>
-
                     </li>
                 </ul>
                 <div class="search-box">
                     <i class="fa fa-search"></i>
                     <input type="search" class="search" placeholder="Search..." />
                 </div>
-                <div class="icon-basket">
+                <div class="icon-basket" @click="redirectIfNotLoggedIn('/users/cart')">
                     <router-link to="/users/cart">
-                        <font-awesome-icon :icon="['fas', 'cart-shopping']" id="icon-basket"></font-awesome-icon>
+                        <div class="cart-icon">
+                            <font-awesome-icon :icon="['fas', 'cart-shopping']" id="icon-basket"></font-awesome-icon>
+                            <span v-if="cartItemCount > 0" class="cart-count">{{ cartItemCount }}</span>
+                            <!-- <span v-if="cartItemCount > 0" class="cart-count">000</span> -->
+                        </div>
                     </router-link>
                 </div>
             </nav>
         </div>
-
     </div>
 </template>
+
 
 <script>
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faCartShopping, faCircleUser } from '@fortawesome/free-solid-svg-icons'
 // import jwtDecode from 'jwt-decode';
+import axios from 'axios';
 
 library.add(faSearch, faCartShopping, faCircleUser)
 
@@ -53,15 +61,28 @@ export default {
         return {
             isMenuOpen: false,
             isLoggedIn: false,
-            userName: '' ,
+            userName: '',
+            profileImage: null,
+            cartItemCount: 0,
         };
     }, created() {
         this.checkLoginStatus();
         this.getUserName();
+        this.getProfileImage();
+        this.fetchCartItemCount();
     }, components: {
         FontAwesomeIcon
     },
     methods: {
+        fetchCartItemCount() {
+            axios.get('http://localhost:8081/products/getCart')
+                .then(response => {
+                    this.cartItemCount = response.data.length;
+                })
+                .catch(error => {
+                    console.error('Error fetching cart count:', error);
+                });
+        },
         userRole() {
             const user = JSON.parse(localStorage.getItem('user'));
             return user ? user.role : null;
@@ -77,14 +98,25 @@ export default {
             console.log('User data:', user);
             if (user) {
                 this.userName = user.name;
-                console.log('User name:', this.userName);  
+                console.log('User name:', this.userName);
             }
-        },  logout() {
+        }, logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             this.isLoggedIn = false;
             this.userName = '';
             window.location.href = `http://localhost:8080`;
+        }, getProfileImage() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.image) {
+                this.profileImage = user.image;
+            }
+        }, redirectIfNotLoggedIn(path) {
+            if (!this.isLoggedIn) {
+                this.$router.push('/users/login');
+            } else {
+                this.$router.push(path);
+            }
         }
     }
 };
@@ -97,6 +129,29 @@ export default {
     color: grey;
     opacity: 0.5;
 }
+
+.cart-icon {
+    position: relative;
+}
+
+.cart-count {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 3px 6px;
+    font-size: 12px;
+}
+
+.profile-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 30px;
+    object-fit: cover;
+}
+
 .head {
     height: 40%;
     width: 100vw;
@@ -111,6 +166,7 @@ export default {
 
 .profile {
     display: flex;
+    gap: 10px;
     align-items: center;
 }
 

@@ -3,7 +3,24 @@
         <div id="storeContainer">
             <div id="storeLeft">
                 <div id="storeLeftIMG">
-                    <img src="../assets/1.png" alt="Store Image">
+                    <div class="upload-container">
+                        <div v-if="images.length > 0" class="images-container" id="container-product-images">
+                            <div v-for="(image, index) in images" :key="image.id" class="image-wrapper">
+                                <img :src="image.src" alt="Product Image" class="uploaded-image" />
+                                <span class="delete-icon" @click="removeImage(index)">x</span>
+                            </div>
+                        </div>
+
+                        <div v-else class="upload-icon-container">
+                            <font-awesome-icon :icon="['fas', 'image']" @click="triggerFileInput('product')"
+                                class="upload-icon" />
+                            <input type="file" ref="productImageInput" class="image-upload" accept="image/*"
+                                @change="previewImage($event, 'images')" multiple style="display: none" />
+                        </div>
+
+                        <p id="photo-product-images-error" v-if="photoProductImagesError" style="color: red">
+                            กรุณาอัพโหลดรูปภาพ</p>
+                    </div>
                 </div>
                 <div id="storeLeftTXT">
                     <p id="namestore">{{ shopName }}</p>
@@ -13,10 +30,6 @@
                             <font-awesome-icon :icon="['fas', 'plus']" class="font-awesome" />
                             <p>{{ StoreFollow ? 'ติดตามแล้ว' : 'ติดตาม' }}</p>
                         </button>
-                        <!-- <button>
-                            <font-awesome-icon :icon="['fas', 'comment']" class="font-awesome" />
-                            <p>แชท</p>
-                        </button> -->
                         <button>
                             <font-awesome-icon :icon="['fas', 'house']" class="font-awesome" />
                             <p>หน้าร้าน</p>
@@ -28,7 +41,6 @@
             <div id="storeRight">
                 <p>คะแนน: 51.9พัน</p>
                 <p>รายการสินค้า:<span>{{ filteredProducts.length }}</span></p>
-                <!-- <p>เวลาในการตอบกลับ: ภายในไม่กี่ชั่วโมง</p> -->
                 <p>เข้าร่วมเมื่อ: <span>{{ createdAt }}</span></p>
                 <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
             </div>
@@ -62,6 +74,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlus, faComment, faHouse } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 // import { mapActions } from 'vuex';
+import Pica from 'pica';
 
 library.add(faPlus, faComment, faHouse);
 
@@ -79,7 +92,8 @@ export default {
             StoreFollow: false,
             followerCount: 0,
             createdAt: '',
-            userEmail:''
+            userEmail: '',
+            images: [],
         };
     },
 
@@ -100,6 +114,7 @@ export default {
         await this.fetchShopDetails();
     },
     methods: {
+
         async fetchProductDetails() {
             try {
                 const response = await axios.get("http://localhost:8081/selling/productss");
@@ -121,6 +136,12 @@ export default {
                     this.createdAt = new Date(shop.createdAt).toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
                     this.followerCount = shop.follow;
                     this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
+                    if (shop.image) {
+                        this.images.push({
+                            id: `image${this.nextImageId++}`,
+                            src: shop.image,
+                        });
+                    }
                 } else {
                     console.error('Shop not found');
                 }
@@ -128,6 +149,10 @@ export default {
             } catch (error) {
                 console.error('Error fetching shop details:', error);
             }
+        },
+        triggerFileInput(inputName) {
+            const refName = this.$refs[`${inputName}ImageInput`];
+            if (refName) refName.click();
         }
         ,
         async handleToggleFollow() {
@@ -136,14 +161,12 @@ export default {
                     const followChange = this.StoreFollow ? -1 : 1;
                     console.log("Toggling follow status");
 
-                    // ส่งข้อมูลไปยัง API เพื่ออัปเดตสถานะการติดตาม
                     const response = await axios.patch('http://localhost:8081/shop/follow', {
                         email: this.userEmail,
                         shopId: this.shopId,
                         followChange: followChange
                     });
 
-                    // อัปเดตสถานะการติดตามและจำนวนผู้ติดตามจากการตอบกลับ
                     this.StoreFollow = !this.StoreFollow;
                     this.followerCount = response.data.followCount;
 
@@ -168,7 +191,78 @@ export default {
                 console.error('Error deleting product:', error);
             }
         },
+        async previewImage(event) {
+            const pica = Pica();
+            const files = event.target.files;
+            const targetArray = this.images;
 
+            Array.from(files).forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+
+                    img.onload = async () => {
+                        const originalCanvas = document.createElement('canvas');
+                        originalCanvas.width = img.width;
+                        originalCanvas.height = img.height;
+                        const originalCtx = originalCanvas.getContext('2d');
+                        originalCtx.drawImage(img, 0, 0, img.width, img.height);
+
+                        const resizedCanvas = document.createElement('canvas');
+                        const max_width = 400;
+                        const max_height = 300;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > max_width) {
+                                height = (height * max_width) / width;
+                                width = max_width;
+                            }
+                        } else {
+                            if (height > max_height) {
+                                width = (width * max_height) / height;
+                                height = max_height;
+                            }
+                        }
+
+                        resizedCanvas.width = width;
+                        resizedCanvas.height = height;
+
+                        await pica.resize(originalCanvas, resizedCanvas);
+                        const blob = await pica.toBlob(resizedCanvas, 'image/jpeg', 0.75);
+                        const readerBlob = new FileReader();
+                        readerBlob.onloadend = () => {
+                            targetArray.push({
+                                id: `image${this.nextImageId++}`,
+                                src: readerBlob.result,
+                            });
+                            this.saveSettings();
+                        };
+                        readerBlob.readAsDataURL(blob);
+                    };
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = "";
+        },
+        removeImage(index) {
+            this.images.splice(index, 1);
+        },
+        async saveSettings() {
+            try {
+                const image = this.images.length > 0 ? this.images[0].src : '';
+                const payload = {
+                    email: this.userEmail,
+                    image,
+                };
+                console.log('Payload:', payload);
+                await axios.put('http://localhost:8081/shop/account', payload);
+            } catch (error) {
+                console.error('Error updating account:', error);
+            }
+        },
     },
 };
 </script>
@@ -204,6 +298,20 @@ export default {
     margin-top: -70px
 }
 
+.delete-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.image-wrapper {
+    position: relative;
+}
+
 #storeRight {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -215,10 +323,19 @@ export default {
     justify-content: center;
     align-items: center;
     margin-right: 5%;
+    gap: 20px;
 }
 
 #storeRight p {
     font-size: 21px;
+}
+
+.upload-icon {
+    font-size: 90px;
+    /* Increased font size for the icon */
+    color: #888;
+    cursor: pointer;
+    margin-bottom: 10px;
 }
 
 #storeLeftIMG img {
@@ -243,6 +360,7 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
+    margin-left: 20px;
 }
 
 #storeLeftTXT button {

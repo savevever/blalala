@@ -32,6 +32,8 @@ import StartSelling from './components/selling/start-selling.vue'
 import salesPage from './components/selling/sales-page.vue'
 import myStore from './page/myStore.vue';
 import OtpPage from './page/OPT-Component.vue'; 
+import reviewPage from './components/production/reviewPage.vue';
+import commemt from "./components/production/commemt-component.vue"
 library.add(fas, faGoogle);
 const routes = [
     {
@@ -101,6 +103,10 @@ const routes = [
         path: '/selling/salesPage', name: 'salesPage ', component: salesPage
     }, {
         path: '/selling/myStore', name: 'myStore ', component: myStore
+    }, {
+        path: '/selling/reviewPage', reviewPage: 'myStore ', component: reviewPage
+    }, {
+        path: '/selling/commemt', reviewPage: 'commemt ', component: commemt
     }
 ];
 

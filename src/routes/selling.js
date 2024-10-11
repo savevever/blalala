@@ -14,7 +14,6 @@ router.post('/createSeller', async (req, res) => {
             vatRegistration, companyOffice, vatRegistrationDocument, sellerEmail
         } = req.body;
 
-        // Create a new seller entry in the database
         const newSeller = await seller.create({
             sellerType, title, firstName, lastName, idCardNumber, birthDate, province,
             district, subDistrict, postalCode, addressDetail, idCardFrontImage,
@@ -64,16 +63,15 @@ router.post('/save-product-data', upload.any(), async (req, res) => {
     try {
         const productData = {
             ...req.body,
-            images: JSON.parse(req.body.images), // แปลง JSON string กลับเป็นอาร์เรย์
-            productTypes: JSON.parse(req.body.productTypes), // แปลง JSON string กลับเป็นอาร์เรย์
-            imageList: JSON.parse(req.body.imageList), // แปลง JSON string กลับเป็นอาร์เรย์
+            images: JSON.parse(req.body.images),
+            productTypes: JSON.parse(req.body.productTypes),
+            imageList: JSON.parse(req.body.imageList),
         };
 
-        console.log('Product data to be saved:', productData); // ตรวจสอบข้อมูลที่ถูกแปลง
+        console.log('Product data to be saved:', productData);
         if (!productData.id) {
-            productData.id = crypto.randomUUID(); // สร้าง UUID ถ้าไม่มี id
+            productData.id = crypto.randomUUID();
         }
-        // บันทึกข้อมูลลงในฐานข้อมูล PostgreSQL
         await ProductTest.create(productData);
 
         res.status(200).json({ message: 'บันทึกข้อมูลลง PostgreSQL สำเร็จ' });
@@ -236,4 +234,36 @@ router.post('/api/saveProductData', async (req, res) => {
         res.status(500).json({ error: 'Failed to save data' });
     }
 });
+router.put('/product/:id/like', async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const product = await ProductTest.findById(productId);
+        if (!product) {
+            return res.status(404).send({ message: 'Product not found' });
+        }
+        product.likes += 1;
+        await product.save();
+        res.status(200).send({ message: 'Product liked', likes: product.likes });
+    } catch (error) {
+        res.status(500).send({ message: 'Error liking product', error });
+    }
+});
+
+router.put('/product/:id/unlike', async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const product = await ProductTest.findById(productId);
+        if (!product) {
+            return res.status(404).send({ message: 'Product not found' });
+        }
+        if (product.likes > 0) {
+            product.likes -= 1;
+        }
+        await product.save();
+        res.status(200).send({ message: 'Product unliked', likes: product.likes });
+    } catch (error) {
+        res.status(500).send({ message: 'Error unliking product', error });
+    }
+});
+
 module.exports = router;

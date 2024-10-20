@@ -234,36 +234,38 @@ router.post('/api/saveProductData', async (req, res) => {
         res.status(500).json({ error: 'Failed to save data' });
     }
 });
-router.put('/product/:id/like', async (req, res) => {
+router.put('/product/:id/toggleLike', async (req, res) => {
     try {
         const productId = req.params.id;
-        const product = await ProductTest.findById(productId);
+        const likeChange = req.body.likeChange;
+        const product = await ProductTest.findByPk(productId);
         if (!product) {
             return res.status(404).send({ message: 'Product not found' });
         }
-        product.likes += 1;
-        await product.save();
-        res.status(200).send({ message: 'Product liked', likes: product.likes });
-    } catch (error) {
-        res.status(500).send({ message: 'Error liking product', error });
-    }
-});
-
-router.put('/product/:id/unlike', async (req, res) => {
-    try {
-        const productId = req.params.id;
-        const product = await ProductTest.findById(productId);
-        if (!product) {
-            return res.status(404).send({ message: 'Product not found' });
-        }
-        if (product.likes > 0) {
+        // if (likeChange == 1) {
+        //     await product.increment('likes', { by: 1 });
+        // } else if (likeChange == -1 && product.likes > 0) {
+        //     await product.decrement('likes', { by: 1 });
+        // }
+        if (likeChange === 1) {
+            product.likes += 1;
+        } else if(likeChange === -1) {
             product.likes -= 1;
         }
         await product.save();
-        res.status(200).send({ message: 'Product unliked', likes: product.likes });
+        res.status(200).send({
+            message: 'Product like status changed',
+            likes: product.likes
+        });
     } catch (error) {
-        res.status(500).send({ message: 'Error unliking product', error });
+        console.error('Error toggling like:', error);
+        res.status(500).send({
+            message: 'Error toggling like',
+            error: error.message
+        });
     }
 });
+
+
 
 module.exports = router;

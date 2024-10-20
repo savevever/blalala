@@ -14,7 +14,7 @@
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
                                 @click="handleToggleLike" />
-                            <!-- <p><span>11</span> คนที่ถูกใจ</p> -->
+                            <p><span >{{ this.likesCount }}</span> คนที่ถูกใจ</p>
                             <p><span>ขายแล้ว{{ Alltotalsell }}</span>ชิ้น</p>
                         </div>
                         <p class="price">฿{{ product ? product.price : 'Loading...' }}</p>
@@ -81,7 +81,8 @@ export default {
             count: 0,
             selectedOptions: [],
             filteredProducts: [],
-            isPressedHeart:"like"
+            isPressedHeart: false,
+            likesCount:0
         };
     },
     computed: {
@@ -122,12 +123,14 @@ export default {
             axios.get('http://localhost:8081/selling/productss')
                 .then(response => {
                     console.log('Response Data:', response.data);
+                    
                     if (response.data && response.data.length > 0) {
 
                         const product = response.data.find(product => product.id == productId);
                         if (product && product.productTypes) {
                             this.$store.dispatch('setSelectedProduct', product);
                             console.log('Product Types:', product.productTypes);
+                            this.likesCount = product.likes
                         } else {
                             console.log('ไม่พบข้อมูลสินค้าที่มี ID นี้');
                         }
@@ -141,7 +144,7 @@ export default {
         },
         userEmail() {
             const user = JSON.parse(localStorage.getItem('user'));
-            console.log('User Email:', user ? user.email : null);
+            // console.log('User Email:', user ? user.email : null);
             return user ? user.email : null;
         },
         addToCartClicked() {
@@ -157,7 +160,7 @@ export default {
                     shopId: this.product.shopId,
                     productTypes: selectedProductType
                 };
-                console.log('Product Data for Cart:', productData);
+                // console.log('Product Data for Cart:', productData);
 
                 axios.post('http://localhost:8081/products/createCartEntry', productData)
                     .then(response => {
@@ -170,7 +173,7 @@ export default {
         },
         handleClick() {
             this.addToHistoryClicked();
-            // this.handleAddToHistory();
+            this.handleAddToHistory();
         },
         addToHistoryClicked() {
             if (this.product) {
@@ -185,7 +188,7 @@ export default {
                     shopId: this.product.shopId,
                     productTypes: selectedProductType
                 };
-                console.log('Product Data for History:', productData);
+                // console.log('Product Data for History:', productData);
                 axios.put(`http://localhost:8081/selling/updateProduct/${productData.productId}`, {
                     totalSell: parseInt(productData.quantity),
                     totalPrice: parseFloat(productData.price) * parseInt(productData.quantity)
@@ -207,25 +210,31 @@ export default {
         },
         handleProductTypeClick(option, index) {
             this.selectedOptions[index] = option;
-            console.log('Selected options:', this.selectedOptions);
+            // console.log('Selected options:', this.selectedOptions);
         },
         async handleToggleLike() {
             if (this.product) {
                 const productId = this.product.id;
-                console.log(productId);
-                console.log(this.isPressedHeart);
-                const url = `http://localhost:8081/products/product/${productId}/${this.isPressedHeart ? 'unlike' : 'like'}`;
-
                 try {
-                    const response = await axios.put(url);
-                    console.log(response.data.message);
+                    const url = `http://localhost:8081/selling/product/${productId}/toggleLike`;
+                    const likeChange = this.isPressedHeart ? -1 : 1;
+                    console.log("likeChange",likeChange);
+                    
+                    const response = await axios.put(url, {
+                        likeChange: likeChange // ส่งการเปลี่ยนแปลง likes ไปยัง backend
+                    });
 
+                    console.log("Updated likes:", response.data); // ตรวจสอบค่าที่ได้จาก backend
+
+                    // Toggle the like state
                     this.isPressedHeart = !this.isPressedHeart;
                 } catch (error) {
                     console.error("Error toggling like:", error);
                 }
             }
         },
+
+
         increment() {
             if (this.count < this.product.numberProducts) {
                 this.count++;

@@ -54,15 +54,14 @@ router.patch('/follow', async (req, res) => {
         let followedBy = shop.followedBy || [];
         let followCount = shop.follow || 0;
 
-        // ถ้า followChange = 1 ให้ติดตาม ถ้า followChange = -1 ให้ยกเลิกการติดตาม
         if (followChange === 1) {
             if (!followedBy.includes(email)) {
-                followedBy.push(email); // เพิ่มอีเมลเข้าไปในรายการติดตาม
+                followedBy.push(email); 
                 followCount += 1;
             }
         } else if (followChange === -1) {
             if (followedBy.includes(email)) {
-                followedBy = followedBy.filter(followedEmail => followedEmail !== email); // ลบอีเมลออกจากรายการติดตาม
+                followedBy = followedBy.filter(followedEmail => followedEmail !== email);
                 followCount -= 1;
             }
         }

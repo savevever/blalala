@@ -30,7 +30,15 @@
                 </ul>
                 <div class="search-box">
                     <i class="fa fa-search"></i>
-                    <input type="search" class="search" placeholder="Search..." />
+                    <input type="search" class="search" placeholder="Search..." v-model="searchInput"
+                        @input="searchProducts" @keyup.enter="searchProducts" @focus="showSuggestions = true"
+                        @blur="hideSuggestionsWithDelay" />
+                    <ul v-if="showSuggestions && filteredSuggestions.length > 0" class="autocomplete-list">
+                        <li v-for="(suggestion, index) in filteredSuggestions" :key="index"
+                            @mousedown="selectSuggestion(suggestion)" class="autocomplete-item">
+                            {{ suggestion.nameProduct }}
+                        </li>
+                    </ul>
                 </div>
                 <div class="icon-basket" @click="redirectIfNotLoggedIn('/users/cart')">
                     <router-link to="/users/cart">
@@ -51,7 +59,6 @@
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faCartShopping, faCircleUser } from '@fortawesome/free-solid-svg-icons'
-// import jwtDecode from 'jwt-decode';
 import axios from 'axios';
 
 library.add(faSearch, faCartShopping, faCircleUser)
@@ -64,12 +71,18 @@ export default {
             userName: '',
             profileImage: null,
             cartItemCount: 0,
+            searchInput: '', // ช่องค้นหา
+            filteredSuggestions: [], // คำแนะนำที่กรองแล้ว
+            products: [], // รายการสินค้าทั้งหมด
+            showSuggestions: false, // ควบคุมการแสดง dropdown
         };
     }, created() {
         this.checkLoginStatus();
         this.getUserName();
         this.getProfileImage();
         this.fetchCartItemCount();
+        this.loadProducts(); // โหลดข้อมูลสินค้า
+
     }, components: {
         FontAwesomeIcon
     },
@@ -117,13 +130,88 @@ export default {
             } else {
                 this.$router.push(path);
             }
+        },
+        async loadProducts() {
+            try {
+                const response = await axios.get('http://localhost:8081/selling/productss');
+                this.products = response.data;
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        },
+        searchProducts() {
+            const searchQueryLower = this.searchInput.trim().toLowerCase(); // ตัดช่องว่างและแปลงเป็นตัวพิมพ์เล็ก
+            if (searchQueryLower) {
+                // ค้นหาเฉพาะสินค้าที่ตรงกับคำค้นหา
+                this.filteredSuggestions = this.products.filter(product =>
+                    product.nameProduct.toLowerCase().includes(searchQueryLower)
+                );
+                this.showSuggestions = this.filteredSuggestions.length > 0; // แสดง dropdown เฉพาะเมื่อมีคำแนะนำ
+            } else {
+                this.filteredSuggestions = [];
+                this.showSuggestions = false;
+            }
+        },
+        selectSuggestion(suggestion) {
+            this.searchInput = suggestion.nameProduct;
+            this.showSuggestions = false;
+            this.$router.push(`/users/production?productId=${suggestion.id}`);
+        },
+        hideSuggestionsWithDelay() {
+            setTimeout(() => {
+                this.showSuggestions = false;
+            }, 200);
         }
     }
 };
 </script>
 
 <style scoped>
-/* Add your styles here */
+.search-box {
+    position: relative;
+    /* เพื่อให้ dropdown อยู่ในตำแหน่งสัมพัทธ์กับช่องค้นหา */
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 5px 10px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+}
+
+.autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    padding: 0;
+    margin-top: 2px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+}
+.autocomplete-list li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ccc;
+    display: block; 
+}
+
+.search-box li.autocomplete-item {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.search-box li.autocomplete-item:hover {
+    background-color: #ffde98;
+}
+
 .disabled {
     pointer-events: none;
     color: grey;
@@ -161,7 +249,7 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    margin-bottom: 70px;
+    margin-bottom: 40px;
 }
 
 .profile {

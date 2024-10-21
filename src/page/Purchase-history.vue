@@ -19,15 +19,12 @@
                                 <div class="item-2">
                                     <p>ตัวเลือก:<span>{{ product.productTypes }}</span></p>
                                     <router-link :to="{ path: '/selling/reviewPage', query: { productId: product.productId } }"><button>ให้คะเเนน</button></router-link>
-                                    <p>{{ product.price }} บาท</p>
+                                    <p>{{calculateLinePrice(product).toFixed(2)}} บาท</p>
                                 </div>
                             </div>
-                            <!-- <div class="line"></div> -->
                         </div>
                         <div class="item-button">
-                            <!-- <button @click="reorder(product)">สั่งซื้ออีกครั้ง</button> -->
                             <button @click="handleClick">สั่งซื้ออีกครั้ง</button>
-                            <!-- <button @click="cancelOrder(product.productId)">ยกเลิกคำสั่งซื้อ</button> -->
                             <button @click="cancelOrder">ลบรายการสินค้า</button>
                         </div>
                     </div>
@@ -35,14 +32,6 @@
 
             </div>
         </div>
-
-        <!-- <div v-for="shop in shops" :key="shop.shopId">
-            <h1>ชื่อร้าน: {{ shop.shopName }}</h1>
-            <div v-for="product in filteredProducts(shop.shopId)" :key="product.productId">
-                <p>สินค้าของร้านค้านี้: {{ product.nameProduct }}</p>
-            </div>
-        </div> -->
-
     </div>
     <footerComponent></footerComponent>
 </template>
@@ -73,6 +62,15 @@ export default {
         }
     },
     methods: {
+        totalPrice() {
+            if (this.selectedItems.length > 0) {
+                return this.calculateLinePrice(this.selectedItems[0]).toFixed(2);
+            }
+            return 0;
+        },
+        calculateLinePrice(product) {
+            return product.price * product.quantity;
+        },
         filteredProducts(shopId) {
             return this.products.filter(product => product.shopId === shopId);
         },
@@ -102,17 +100,15 @@ export default {
         },
         async cancelOrder() {
             const itemsToRemove = this.selectedItems.filter(product => product.checkbox);
-
             try {
-                // Send a delete request for each selected product
+                
                 for (const product of itemsToRemove) {
-                    await axios.delete(`http://localhost:8081/products/delHistory/${product.productId}`);
+                    console.log('History ID to delete:', product.Historyid);
+                    await axios.delete(`http://localhost:8081/products/delHistory/${product.Historyid}`);
                     console.log(`Deleted product with ID: ${product.productId}`);
                 }
-
-                // After removing the items, refresh the history
                 await this.loadHistory();
-
+                window.location.reload();
             } catch (error) {
                 console.error('Error canceling orders:', error);
             }
@@ -169,10 +165,9 @@ export default {
         },
         setSelectItem(product) {
             if (product.checkbox) {
-                // ถ้าถูกเลือก เพิ่มสินค้าเข้าไปใน selectedItems
                 this.selectedItems.push(product);
+                
             } else {
-                // ถ้าถูกยกเลิกการเลือก เอาสินค้าออกจาก selectedItems
                 const index = this.selectedItems.findIndex(item => item.id === product.id);
                 if (index !== -1) {
                     this.selectedItems.splice(index, 1);

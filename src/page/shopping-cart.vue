@@ -120,12 +120,12 @@ export default {
         addToHistoryClicked() {
             if (this.selectedItems.length > 0) {
                 this.selectedItems.forEach(product => {
-                    const calculatedPrice = this.calculateLinePrice(product).toFixed(2); // คำนวณราคา
+                    const calculatedPrice = this.calculateLinePrice(product).toFixed(2); 
 
                     const productData = {
                         productId: product.id,
                         nameProduct: product.nameProduct,
-                        price: calculatedPrice, // ใช้ราคาใหม่ที่คำนวณมา
+                        price: calculatedPrice, 
                         quantity: product.quantity,
                         image: product.image,
                         email: product.email,

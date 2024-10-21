@@ -16,7 +16,7 @@ const User = sequelize.define('User', {
     image: {
         type: DataTypes.JSONB, allowNull: true
     },
-    isConfirmed:{ type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
+    isConfirmed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
 });
 
 const Product = sequelize.define('Product', {
@@ -116,8 +116,8 @@ const ProductTest = sequelize.define('ProductTest', {
     }, shopId: {
         type: DataTypes.STRING,
         references: {
-            model: Shop, 
-            key: 'shopId' 
+            model: Shop,
+            key: 'shopId'
         },
         allowNull: false
     },
@@ -128,10 +128,16 @@ const ProductTest = sequelize.define('ProductTest', {
     },
     likes: { type: DataTypes.INTEGER, default: 0 }
 },
-    
+
 );
+
 const history = sequelize.define('history', {
-    id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+    Historyid: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        primaryKey: true,
+        defaultValue: () => crypto.randomUUID()
+    },
     productId: { type: DataTypes.STRING, allowNull: true },
     image: { type: DataTypes.TEXT, allowNull: true },
     nameProduct: { type: DataTypes.STRING, allowNull: false },
@@ -288,7 +294,7 @@ const comment = sequelize.define('comment', {
     },
     star: { type: DataTypes.STRING, allowNull: true },
     email: { type: DataTypes.STRING, allowNull: true },
-    productId:{ type: DataTypes.STRING, allowNull: false, },
+    productId: { type: DataTypes.STRING, allowNull: false, },
     AcImg: {
         type: DataTypes.JSONB,
         allowNull: true,

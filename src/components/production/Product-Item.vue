@@ -14,7 +14,7 @@
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
                                 @click="handleToggleLike" />
-                            <p><span >{{ this.likesCount }}</span> คนที่ถูกใจ</p>
+                            <p><span>{{ this.likesCount }}</span> คนที่ถูกใจ</p>
                             <p><span>ขายแล้ว{{ Alltotalsell }}</span>ชิ้น</p>
                         </div>
                         <p class="price">฿{{ product ? product.price : 'Loading...' }}</p>
@@ -51,8 +51,8 @@
                     <curosurSlice></curosurSlice>
                 </div>
                 <div id="ProductItemButton">
-                    <router-link to="/users/cart"><button @click="addToCartClicked" :disabled="!isProductTypeSelected"
-                            class="btn1">เพิ่มสินค้าลงในตะกร้า</button></router-link>
+                    <button @click="addToCartClicked" :disabled="!isProductTypeSelected"
+                            class="btn1">เพิ่มสินค้าลงในตะกร้า</button>
                     <!-- <router-link to="/users/PurchaseHistory"> -->
                     <button class="btn2" @click="handleClick" :disabled="!isProductTypeSelected">ซื้อสินค้าเลย</button>
                     <!-- </router-link> -->
@@ -82,7 +82,7 @@ export default {
             selectedOptions: [],
             filteredProducts: [],
             isPressedHeart: false,
-            likesCount:0
+            likesCount: 0
         };
     },
     computed: {
@@ -123,7 +123,7 @@ export default {
             axios.get('http://localhost:8081/selling/productss')
                 .then(response => {
                     console.log('Response Data:', response.data);
-                    
+
                     if (response.data && response.data.length > 0) {
 
                         const product = response.data.find(product => product.id == productId);
@@ -160,20 +160,37 @@ export default {
                     shopId: this.product.shopId,
                     productTypes: selectedProductType
                 };
-                // console.log('Product Data for Cart:', productData);
 
-                axios.post('http://localhost:8081/products/createCartEntry', productData)
+                axios.get(`http://localhost:8081/products/checkCart/${productData.productId}`)
                     .then(response => {
-                        console.log("Product added to cart:", response.data);
+                        if (response.data.exists) {
+                            axios.put(`http://localhost:8081/products/updateCartQuantity/${productData.productId}`, {
+                                additionalQuantity: productData.quantity
+                            })
+                                .then(response => {
+                                    console.log("Product quantity updated:", response.data);
+                                })
+                                .catch(error => {
+                                    console.error("Error updating product quantity:", error);
+                                });
+                        } else {
+                            axios.post('http://localhost:8081/products/createCartEntry', productData)
+                                .then(response => {
+                                    console.log("Product added to cart:", response.data);
+                                })
+                                .catch(error => {
+                                    console.error("Error adding product to cart:", error);
+                                });
+                        }
                     })
                     .catch(error => {
-                        console.error("Error adding product to cart:", error);
+                        console.error("Error checking cart:", error);
                     });
             }
         },
         handleClick() {
             this.addToHistoryClicked();
-            this.handleAddToHistory();
+            // this.handleAddToHistory();
         },
         addToHistoryClicked() {
             if (this.product) {
@@ -181,7 +198,7 @@ export default {
                 const productData = {
                     productId: this.product.id,
                     nameProduct: this.product.nameProduct,
-                    price: this.product.price || 0,
+                    price: this.product.price,
                     quantity: this.count || 0,
                     image: this.product.images && this.product.images.length > 0 ? this.product.images[0].src : '../../assets/default.png',
                     email: this.userEmail(),
@@ -218,8 +235,8 @@ export default {
                 try {
                     const url = `http://localhost:8081/selling/product/${productId}/toggleLike`;
                     const likeChange = this.isPressedHeart ? -1 : 1;
-                    console.log("likeChange",likeChange);
-                    
+                    console.log("likeChange", likeChange);
+
                     const response = await axios.put(url, {
                         likeChange: likeChange // ส่งการเปลี่ยนแปลง likes ไปยัง backend
                     });
@@ -233,8 +250,6 @@ export default {
                 }
             }
         },
-
-
         increment() {
             if (this.count < this.product.numberProducts) {
                 this.count++;

@@ -242,11 +242,7 @@ router.put('/product/:id/toggleLike', async (req, res) => {
         if (!product) {
             return res.status(404).send({ message: 'Product not found' });
         }
-        // if (likeChange == 1) {
-        //     await product.increment('likes', { by: 1 });
-        // } else if (likeChange == -1 && product.likes > 0) {
-        //     await product.decrement('likes', { by: 1 });
-        // }
+
         if (likeChange === 1) {
             product.likes += 1;
         } else if(likeChange === -1) {

@@ -16,14 +16,16 @@ router.post('/register-shop', async (req, res) => {
             email,
             phoneNumber
         });
-        
-        res.status(201).json({ message: 'Shop created successfully', data: {
-            shopId: newShop.shopId, 
-            userId: newShop.userId,
-            shopName: newShop.shopName,
-            email: newShop.email,
-            phoneNumber: newShop.phoneNumber
-        } });
+
+        res.status(201).json({
+            message: 'Shop created successfully', data: {
+                shopId: newShop.shopId,
+                userId: newShop.userId,
+                shopName: newShop.shopName,
+                email: newShop.email,
+                phoneNumber: newShop.phoneNumber
+            }
+        });
     } catch (error) {
         console.error('Error registering shop:', error);
         res.status(500).json({ message: 'Failed to register shop' });
@@ -42,37 +44,37 @@ router.get('/shopname', async (req, res) => {
         res.status(500).json({ message: 'Failed to retrieve shop name' });
     }
 });
-router.patch('/follow', async (req, res) => {
+
+router.patch('/product/:id/togglefollow', async (req, res) => {
     try {
-        const { email, shopId, followChange } = req.body;
-        const shop = await Shop.findOne({ where: { shopId } });
+        const productId = req.params.id;
+        const FollowChange = req.body.FollowChange;
 
-        if (!shop) {
-            return res.status(404).json({ message: 'Shop not found' });
+        const product = await Shop.findOne({
+            where: { shopId: productId }  
+        });
+
+        if (!product) {
+            return res.status(404).send({ message: 'Shop not found' });
         }
 
-        let followedBy = shop.followedBy || [];
-        let followCount = shop.follow || 0;
-
-        if (followChange === 1) {
-            if (!followedBy.includes(email)) {
-                followedBy.push(email); 
-                followCount += 1;
-            }
-        } else if (followChange === -1) {
-            if (followedBy.includes(email)) {
-                followedBy = followedBy.filter(followedEmail => followedEmail !== email);
-                followCount -= 1;
-            }
+        if (FollowChange === 1) {
+            product.follow += 1;
+        } else if(FollowChange === -1) {
+            product.follow -= 1;
         }
 
-        // อัปเดตค่าการติดตาม
-        await shop.update({ followedBy, follow: followCount });
-
-        res.status(200).json({ followCount });
+        await product.save();
+        res.status(200).send({
+            message: 'Follow status changed',
+            follow: product.follow
+        });
     } catch (error) {
-        console.error('Error managing follow status:', error);
-        res.status(500).json({ message: 'Failed to update follow status' });
+        console.error('Error toggling follow:', error);
+        res.status(500).send({
+            message: 'Error toggling follow',
+            error: error.message
+        });
     }
 });
 
@@ -96,7 +98,7 @@ router.get('/shopsFollow', async (req, res) => {
         for (const shop of shops) {
             // นับจำนวนการติดตามสำหรับร้านค้า
             shop.follow = shop.followedBy.length;
-            
+
             // ตรวจสอบว่าผู้ใช้ปัจจุบันติดตามร้านค้านี้หรือไม่
             shop.isFollowing = shop.followedBy.includes(email);
         }
@@ -135,7 +137,7 @@ router.delete('/shops', async (req, res) => {
     }
 });
 router.put('/account', async (req, res) => {
-    const { email, image } = req.body; 
+    const { email, image } = req.body;
     try {
         const shop = await Shop.findOne({ email });
         if (!shop) {
@@ -143,8 +145,8 @@ router.put('/account', async (req, res) => {
             return res.status(404).send('User not found');
         }
         shop.image = image;
-        await shop.save(); 
-        res.status(200).json(shop); 
+        await shop.save();
+        res.status(200).json(shop);
     } catch (error) {
         console.error('Error during update:', error);
         res.status(500).send('Error during update');

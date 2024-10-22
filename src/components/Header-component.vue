@@ -91,6 +91,8 @@ export default {
             axios.get('http://localhost:8081/products/getCart')
                 .then(response => {
                     this.cartItemCount = response.data.length;
+                    // console.log("this.cartItemCount",response.data);
+                    
                 })
                 .catch(error => {
                     console.error('Error fetching cart count:', error);
@@ -108,10 +110,10 @@ export default {
             this.isLoggedIn = !!token;
         }, getUserName() {
             const user = JSON.parse(localStorage.getItem('user'));
-            console.log('User data:', user);
+            // console.log('User data:', user);
             if (user) {
                 this.userName = user.name;
-                console.log('User name:', this.userName);
+                // console.log('User name:', this.userName);
             }
         }, logout() {
             localStorage.removeItem('token');

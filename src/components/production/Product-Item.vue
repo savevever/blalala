@@ -238,12 +238,11 @@ export default {
                     console.log("likeChange", likeChange);
 
                     const response = await axios.put(url, {
-                        likeChange: likeChange // ส่งการเปลี่ยนแปลง likes ไปยัง backend
+                        likeChange: likeChange
                     });
 
-                    console.log("Updated likes:", response.data); // ตรวจสอบค่าที่ได้จาก backend
+                    console.log("Updated likes:", response.data); 
 
-                    // Toggle the like state
                     this.isPressedHeart = !this.isPressedHeart;
                 } catch (error) {
                     console.error("Error toggling like:", error);

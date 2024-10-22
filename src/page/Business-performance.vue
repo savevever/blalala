@@ -32,7 +32,7 @@
                             <div class="item comment">
                                 <font-awesome-icon icon="fa-regular fa-comments" class="icon" />
                                 <h4 class="card-title">จำนวนความคิดเห็น</h4>
-                                <div class="card-value"><span>227,065.00</span>จำนวน</div>
+                                <div class="card-value"><span>{{getTotalComments }}</span>จำนวน</div>
                                 <!-- <a href="#" class="more-info">More info</a> -->
                             </div>
                         </div>
@@ -51,7 +51,8 @@
                         <top5mostSell v-if="activeComponent === 'top5mostSell'" :filteredProducts="filteredProducts">
                         </top5mostSell>
                         <proFit v-if="activeComponent === 'proFit'" :filteredProducts="filteredProducts"></proFit>
-                        <totallSell v-if="activeComponent === 'totallSell'" :filteredProducts="filteredProducts"></totallSell>
+                        <totallSell v-if="activeComponent === 'totallSell'" :filteredProducts="filteredProducts">
+                        </totallSell>
                     </div>
                 </div>
             </div>
@@ -84,9 +85,15 @@ export default {
             products: [],
             filteredProducts: [],
             userEmail: '',
+            commentsCount: {}
         };
     },
     computed: {
+        getTotalComments() {
+            return this.filteredProducts.reduce((total, product) => {
+                return total + (this.commentsCount[product.id] || 0);
+            }, 0);
+        },
         Alltotalsell() {
             return this.filteredProducts.reduce((total, product) => {
                 return total + (product.totalSell || 0);
@@ -104,7 +111,7 @@ export default {
             try {
                 const userObject = JSON.parse(user);
                 this.userEmail = userObject.email;
-                console.log('User email:', this.userEmail);
+                // console.log('User email:', this.userEmail);
             } catch (error) {
                 console.error('Error parsing user from localStorage:', error);
             }
@@ -113,15 +120,31 @@ export default {
         }
         await this.fetchProductDetails();
         await this.fetchShopDetails();
+        await this.getCommentsCount();
     },
     methods: {
         async fetchProductDetails() {
             try {
                 const response = await axios.get("http://localhost:8081/selling/productss");
                 this.products = response.data || [];
-                console.log('Product Details:', this.products);
+                // console.log('Product Details:', this.products);
+                // this.getCommentsCount();
             } catch (error) {
                 console.error('Error fetching product details:', error);
+            }
+        },
+        async getCommentsCount() {
+            for (let product of this.filteredProducts) {
+                console.log("ssss",product);
+                
+                try {
+                    const response = await axios.get(`http://localhost:8081/products/getComments/${product.id}`);
+                    this.commentsCount[product.id] = response.data.length || 0;
+                    console.log("aaa",this.commentsCount);
+                    
+                } catch (error) {
+                    console.error(`Error fetching comments for product ${product.id}:`, error);
+                }
             }
         },
         async fetchShopDetails() {

@@ -14,8 +14,8 @@
                         <div id="like">
                             <font-awesome-icon :icon="['fas', 'heart']" class="heart" :class="{ 'red': isPressedHeart }"
                                 @click="handleToggleLike" />
-                            <p><span>{{ this.likesCount }}</span> คนที่ถูกใจ</p>
-                            <p><span>ขายแล้ว{{ Alltotalsell }}</span>ชิ้น</p>
+                            <p><span>{{ this.likesCount|| 0 }}</span> คนที่ถูกใจ</p>
+                            <p><span>ขายแล้ว {{ product && product.totalSell ? product.totalSell : 0 }}</span> ชิ้น</p>
                         </div>
                         <p class="price">฿{{ product ? product.price : 'Loading...' }}</p>
                         <div class="option">
@@ -89,11 +89,11 @@ export default {
         ...mapGetters({
             product: 'selectedProduct'
         }),
-        Alltotalsell() {
-            return this.filteredProducts.reduce((total, product) => {
-                return total + (product.totalSell || 0);
-            }, 0);
-        },
+        // Alltotalsell() {
+        //     return this.filteredProducts.reduce((total, product) => {
+        //         return total + (product.totalSell || 0);
+        //     }, 0);
+        // },
         isProductTypeSelected() {
             return this.selectedOptions.length > 0 && this.count > 0;
         }
@@ -129,7 +129,7 @@ export default {
                         const product = response.data.find(product => product.id == productId);
                         if (product && product.productTypes) {
                             this.$store.dispatch('setSelectedProduct', product);
-                            console.log('Product Types:', product.productTypes);
+                            // console.log('Product Types:', product.productTypes);
                             this.likesCount = product.likes
                         } else {
                             console.log('ไม่พบข้อมูลสินค้าที่มี ID นี้');
@@ -205,7 +205,6 @@ export default {
                     shopId: this.product.shopId,
                     productTypes: selectedProductType
                 };
-                // console.log('Product Data for History:', productData);
                 axios.put(`http://localhost:8081/selling/updateProduct/${productData.productId}`, {
                     totalSell: parseInt(productData.quantity),
                     totalPrice: parseFloat(productData.price) * parseInt(productData.quantity)

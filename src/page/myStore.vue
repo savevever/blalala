@@ -8,6 +8,7 @@
                             <div v-for="(image, index) in images" :key="image.id" class="image-wrapper">
                                 <img :src="image.src" alt="Product Image" class="uploaded-image" />
                                 <span class="delete-icon" @click="removeImage(index)">x</span>
+
                             </div>
                         </div>
 
@@ -39,7 +40,7 @@
             </div>
             <div id="line"></div>
             <div id="storeRight">
-                <p>คะแนน: 51.9พัน</p>
+                <p>จำนวนคนที่ถูกใจสินค้า:{{ this.likeCount }}</p>
                 <p>รายการสินค้า:<span>{{ filteredProducts.length }}</span></p>
                 <p>เข้าร่วมเมื่อ: <span>{{ createdAt }}</span></p>
                 <p>ผู้ติดตาม: <span>{{ followerCount }}</span> คน</p>
@@ -50,18 +51,34 @@
                 <div class="products-items">
                     <div>
                         <router-link :to="{ path: '/users/production', query: { productId: product.id } }">
-                            <img :src="product.images[0].src" alt="Product Image" />
+                            <img v-if="product.images && product.images.length > 0" :src="product.images[0].src" alt="Product Image" />
                         </router-link>
                         <button @click="deleteProduct(product.id)" class="delete-button">X</button>
                     </div>
-
                     <div class="products-item">
                         <p class="products-title">{{ product.nameProduct }}</p>
                         <div class="price-soldout">
                             <p class="price">{{ product.price }}</p>
-                            <p class="sold-out">ขายแล้ว {{ product.soldCount }} ชิ้น</p>
+                            <p class="sold-out">ขายแล้ว {{ product.totalSell }} ชิ้น</p>
                         </div>
                     </div>
+
+                </div>
+                <button @click="goToEditProduct(product.id)" class="edit-button">แก้ไข</button>
+                <div v-if="showEditForm && editProductId === product.id" class="edit-form">
+                    <h2>แก้ไขสินค้า</h2>
+
+                    <label for="nameProduct">ชื่อสินค้า</label>
+                    <input id="nameProduct" v-model="editProduct.nameProduct" placeholder="ชื่อสินค้า" />
+
+                    <label for="price">ราคา</label>
+                    <input id="price" v-model="editProduct.price" type="number" placeholder="ราคา" />
+
+                    <label for="totalSell">จำนวนสินค้า</label>
+                    <input id="totalSell" v-model="editProduct.totalSell" type="number" placeholder="จำนวนสินค้า" />
+
+                    <button @click="saveProductEdit">บันทึก</button>
+                    <button @click="closeEditForm">ยกเลิก</button>
                 </div>
             </div>
         </div>
@@ -84,6 +101,14 @@ export default {
     },
     data() {
         return {
+            showEditForm: false,
+            editProductId: null,
+            editProduct: {
+                id: null,
+                nameProduct: '',
+                price: 0,
+                totalSell: 0
+            },
             shopId: [],
             shopName: '',
             productId: null,
@@ -91,6 +116,7 @@ export default {
             filteredProducts: [],
             StoreFollow: false,
             followerCount: 0,
+            likeCount: 0,
             createdAt: '',
             userEmail: '',
             images: [],
@@ -113,12 +139,44 @@ export default {
         await this.fetchProductDetails();
         await this.fetchShopDetails();
     },
+   
     methods: {
+        goToEditProduct(productId) {
+            this.$router.push({ path: '/shop/EditProduct', query: { productId } });
+        },
+        // openEditForm(product) {
+        //     this.showEditForm = true;
+        //     this.editProductId = product.id;
+        //     this.editProduct = { ...product }; 
+        // },
+        // closeEditForm() {
+        //     this.editProductId = null;
+        //     this.showEditForm = false;
+        // },
+        // async saveProductEdit() {
+        //     try {
+        //         await axios.put(`http://localhost:8081/selling/products/${this.editProduct.id}`, {
+        //             nameProduct: this.editProduct.nameProduct,
+        //             price: this.editProduct.price,
+        //             totalSell: this.editProduct.totalSell
+        //         });
 
+        //         const index = this.products.findIndex(p => p.id === this.editProduct.id);
+        //         if (index !== -1) {
+        //             this.$set(this.products, index, { ...this.editProduct });
+        //         }
+
+        //         this.showEditForm = false;
+        //         console.log('อัปเดตสินค้าสำเร็จ');
+        //     } catch (error) {
+        //         console.error('Error updating product:', error);
+        //     }
+        // },
         async fetchProductDetails() {
             try {
                 const response = await axios.get("http://localhost:8081/selling/productss");
                 this.products = response.data || [];
+                this.likeCount = this.products.reduce((totalLikes, product) => totalLikes + (product.likes || 0), 0);
                 console.log('Product Details:', this.products);
             } catch (error) {
                 console.error('Error fetching product details:', error);
@@ -136,6 +194,8 @@ export default {
                     this.createdAt = new Date(shop.createdAt).toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
                     this.followerCount = shop.follow;
                     this.filteredProducts = this.products.filter(product => product.shopId === this.shopId);
+                    console.log("this.filteredProducts", this.filteredProducts);
+
                     if (shop.image) {
                         this.images.push({
                             id: `image${this.nextImageId++}`,

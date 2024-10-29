@@ -58,8 +58,8 @@ router.get('/view-data', async (req, res) => {
 
 const multer = require('multer');
 const upload = multer({ limits: { fileSize: 10 * 1024 * 1024 * 1024 } });
-router.post('/save-product-data', upload.any(), async (req, res) => {
-    console.log('Received request body:', req.body); // เพิ่มการล็อกที่นี่
+router.post('/save-product-data', upload.any(), async (req, res) => {// ************
+    console.log('Received request body:', req.body); 
     try {
         const productData = {
             ...req.body,
@@ -84,7 +84,6 @@ router.put('/updateProduct/:id', async (req, res) => {
     const { id } = req.params;
     const { totalSell, totalPrice } = req.body;
 
-    // ตรวจสอบว่าค่าที่รับมาเป็นตัวเลขจริง
     if (isNaN(totalSell) || isNaN(totalPrice)) {
         return res.status(400).json({ error: 'Invalid input: totalSell or totalPrice is not a number' });
     }
@@ -95,13 +94,12 @@ router.put('/updateProduct/:id', async (req, res) => {
             return res.status(404).json({ error: 'Product not found' });
         }
 
-        // อัปเดตรวมค่าใหม่
         const updatedTotalSell = (product.totalSell || 0) + parseInt(totalSell);
         const updatedTotalPrice = (product.totalPrice || 0) + parseFloat(totalPrice);
-
-        // อัปเดตข้อมูลในฐานข้อมูล
+        
         product.totalSell = updatedTotalSell;
         product.totalPrice = updatedTotalPrice;
+        product.numberProducts -= parseInt(totalSell);
         await product.save();
 
         res.json({ message: 'Product updated successfully', product });
@@ -261,6 +259,39 @@ router.put('/product/:id/toggleLike', async (req, res) => {
         });
     }
 });
+router.put('/products/:productId', async (req, res) => {
+    try {
+        const productId = req.params.productId;
+        const { nameProduct, price, numberProducts, images } = req.body; // รับ `images` 
+
+        const product = await ProductTest.findOne({ where: { id: productId } });
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        const updateData = {};
+        if (nameProduct !== undefined) updateData.nameProduct = nameProduct;
+        if (price !== undefined) updateData.price = price;
+        if (numberProducts !== undefined) updateData.numberProducts = numberProducts;
+
+        // หากมี `images` ใหม่ จะทำการแทนที่ภาพเก่า
+        if (images !== undefined) {
+            updateData.images = images; // แทนที่ภาพทั้งหมดด้วยภาพใหม่
+        }
+
+        await product.update(updateData);
+        res.json({ message: 'Product updated successfully', product }); // ส่งข้อมูลสินค้าที่อัปเดตแล้วกลับไป
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ message: 'Error updating product details' });
+    }
+});
+
+
+
+
+
 
 
 

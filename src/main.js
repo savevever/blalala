@@ -31,13 +31,16 @@ import FormFourSeller from './components/selling/form-four-seller.vue'
 import StartSelling from './components/selling/start-selling.vue'
 import salesPage from './components/selling/sales-page.vue'
 import myStore from './page/myStore.vue';
-import OtpPage from './page/OPT-Component.vue'; 
+import OtpPage from './page/OPT-Component.vue';
 import reviewPage from './components/production/reviewPage.vue';
 import commemt from "./components/production/commemt-component.vue"
+import EditProduct from './components/production/EditProduct.vue';
 library.add(fas, faGoogle);
 const routes = [
     {
         path: '/', name: 'Homepage', component: Homepage
+    }, {
+        path: '/shop/EditProduct', name: 'EditProduct', component: EditProduct
     },
     {
         path: '/users/OTP', name: 'OtpPage', component: OtpPage
@@ -90,7 +93,7 @@ const routes = [
         component: storePage,
         props: route => ({ shopInfo: route.params.shopInfo })
     }, {
-        path:'/selling/FormTwoSeller', name:'FormTwoSeller', component:FormTwoSeller
+        path: '/selling/FormTwoSeller', name: 'FormTwoSeller', component: FormTwoSeller
     }, {
         path: '/selling/FormOneSeller', name: 'FormOneSeller', component: FormOneSeller
     }, {

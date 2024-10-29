@@ -78,7 +78,7 @@
                     {{ isEditing.productTypes ? 'ยกเลิก' : 'แก้ไข' }}
                 </button>
             </div>
-            
+
             <div class="product-field">
                 <label for="productDetails">รายละเอียดสินค้า:</label>
                 <div class="product-info">
@@ -90,7 +90,21 @@
                     {{ isEditing.productDetails ? 'ยกเลิก' : 'แก้ไข' }}
                 </button>
             </div>
-
+            <label for="exampleImages">รูปภาพตัวอย่างสินค้า:</label>
+            <div class="product-info">
+                <img :src="imageList.length ? imageList[0].src : ''" v-if="!isEditing.imageList" />
+                <div>
+                    <input type="file" ref="exampleImageInput" class="input-field" accept="image/*"
+                        @change="previewImageList($event)" multiple style="display: none" />
+                    <button @click="triggerFileInput('exampleImageInput')" class="upload-button">เลือกภาพใหม่</button>
+                    <div class="selected-images">
+                        <div v-for="(image, index) in imageList" :key="image.id" class="image-wrapper">
+                            <img :src="image.src" alt="Example Image" class="uploaded-image" />
+                            <span class="delete-icon" @click="removeImageList(index)">x</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="button-group">
                 <button @click="saveProductEdit" class="save-button">บันทึก</button>
                 <button @click="cancelEdit" class="cancel-button">ยกเลิก</button>
@@ -141,12 +155,39 @@ export default {
         this.fetchProductDetails(productId);
     },
     methods: {
+        previewimageList(event) {
+            const files = event.target.files;
+
+            Array.from(files).forEach((file) => {
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const image = {
+                            id: `image${this.nextImageId++}`,
+                            src: e.target.result,
+                        };
+
+                        this.imageList.push(image);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            event.target.value = '';
+        },
+        triggerimageList() {
+            this.$refs.productImageInput.click();
+        },
+        removeimageList(index) {
+            this.imageList.splice(index, 1);
+        },
+        //************************ */
         previewImage(event, type) {
             const pica = Pica();
             const files = event.target.files;
             const targetArray = type === 'images' ? this.images : this.imageList;
 
-            // เคลียร์ targetArray ก่อนเพิ่มภาพใหม่ (สำหรับภาพเดี่ยว)
+            // Clear the targetArray before adding new images
             targetArray.splice(0, targetArray.length);
 
             Array.from(files).forEach((file) => {
@@ -201,27 +242,8 @@ export default {
                 }
             });
 
-            // เคลียร์ค่าใน input เพื่อให้สามารถเลือกไฟล์เดิมซ้ำได้
             event.target.value = "";
         },
-        async addImage() {
-            try {
-                const images = this.images.map(image => ({
-                    id: image.id,
-                    src: image.src
-                }));
-
-                console.log('Sending images:', images);
-
-                await axios.post(`http://localhost:8081/selling/products/${this.product.id}/images`, { images });
-                alert('แทนที่รูปภาพสำเร็จ');
-                this.fetchProductDetails(this.product.id);
-            } catch (error) {
-                console.error('Error replacing images:', error);
-                alert('เกิดข้อผิดพลาดในการแทนที่รูปภาพ');
-            }
-        }
-        ,
         toggleEdit(field) {
             this.isEditing[field] = !this.isEditing[field];
             if (!this.isEditing[field]) {
@@ -252,6 +274,7 @@ export default {
                     if (response.data && response.data.length > 0) {
                         this.product = response.data.find(product => product.id == productId);
                         this.productTypes = this.product.productTypes || [];
+                        this.imageList = this.product.imageList || [];
                     } else {
                         console.log('ไม่พบข้อมูลสินค้า');
                     }
@@ -261,6 +284,8 @@ export default {
                 });
         },
         async saveProductEdit() {
+            console.log('Images:', this.images);
+            console.log('ImageList:', this.imageList);
             try {
                 const updateData = {
                     nameProduct: this.isEditing.nameProduct ? this.editProduct.nameProduct : this.product.nameProduct,
@@ -268,9 +293,10 @@ export default {
                     numberProducts: this.isEditing.numberProducts ? this.editProduct.numberProducts : this.product.numberProducts,
                     category: this.isEditing.category ? this.editProduct.category : this.product.category,
                     productDetails: this.isEditing.productDetails ? this.editProduct.productDetails : this.product.productDetails,
-                    images: this.images,
+                    images: Array.from(this.images),
+                    imageList: this.imageList,
                 };
-
+                console.log('Update Data:', updateData);
                 await axios.put(`http://localhost:8081/selling/products/${this.product.id}`, updateData);
                 alert('บันทึกสำเร็จ');
                 this.$router.push('/selling/myStore');

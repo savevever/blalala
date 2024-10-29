@@ -59,7 +59,7 @@ router.get('/view-data', async (req, res) => {
 const multer = require('multer');
 const upload = multer({ limits: { fileSize: 10 * 1024 * 1024 * 1024 } });
 router.post('/save-product-data', upload.any(), async (req, res) => {// ************
-    console.log('Received request body:', req.body); 
+    console.log('Received request body:', req.body);
     try {
         const productData = {
             ...req.body,
@@ -96,7 +96,7 @@ router.put('/updateProduct/:id', async (req, res) => {
 
         const updatedTotalSell = (product.totalSell || 0) + parseInt(totalSell);
         const updatedTotalPrice = (product.totalPrice || 0) + parseFloat(totalPrice);
-        
+
         product.totalSell = updatedTotalSell;
         product.totalPrice = updatedTotalPrice;
         product.numberProducts -= parseInt(totalSell);
@@ -243,7 +243,7 @@ router.put('/product/:id/toggleLike', async (req, res) => {
 
         if (likeChange === 1) {
             product.likes += 1;
-        } else if(likeChange === -1) {
+        } else if (likeChange === -1) {
             product.likes -= 1;
         }
         await product.save();
@@ -262,7 +262,7 @@ router.put('/product/:id/toggleLike', async (req, res) => {
 router.put('/products/:productId', async (req, res) => {
     try {
         const productId = req.params.productId;
-        const { nameProduct, price, numberProducts, images } = req.body; // รับ `images` 
+        const { nameProduct, price, numberProducts, images, imageList } = req.body;
 
         const product = await ProductTest.findOne({ where: { id: productId } });
 
@@ -275,19 +275,51 @@ router.put('/products/:productId', async (req, res) => {
         if (price !== undefined) updateData.price = price;
         if (numberProducts !== undefined) updateData.numberProducts = numberProducts;
 
-        // หากมี `images` ใหม่ จะทำการแทนที่ภาพเก่า
-        if (images !== undefined) {
-            updateData.images = images; // แทนที่ภาพทั้งหมดด้วยภาพใหม่
+        // ตรวจสอบว่า `images` มีการส่งเข้ามาหรือไม่
+        if (images !== undefined && images.length > 0) {
+            // ถ้ามีการส่ง `images` ใหม่ ให้แทนที่ค่าปัจจุบัน
+            updateData.images = images;
+        } else {
+            // ถ้าไม่มีก็เก็บค่าปัจจุบันไว้
+            updateData.images = product.images; // ใช้ค่าเดิม
+        }
+
+        // ตรวจสอบ `imageList` เพื่ออัปเดต
+        if (imageList !== undefined) {
+            updateData.imageList = imageList; // อัปเดต `imageList`
         }
 
         await product.update(updateData);
-        res.json({ message: 'Product updated successfully', product }); // ส่งข้อมูลสินค้าที่อัปเดตแล้วกลับไป
+        res.json({ message: 'Product updated successfully', product });
     } catch (error) {
         console.error('Error updating product:', error);
         res.status(500).json({ message: 'Error updating product details' });
     }
 });
 
+
+
+
+router.post('/products/:productId/images', async (req, res) => {
+    try {
+        const productId = req.params.productId;
+        const images = req.body.images || [];
+
+        const product = await ProductTest.findOne({ where: { id: productId } });
+        console.log('Received body:', req.body);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        const updatedImages = [...(product.images || []), ...images];
+        await product.update({ images: updatedImages });
+
+        res.status(200).json({ message: 'Images added successfully', images: updatedImages });
+    } catch (error) {
+        console.error('Error adding images:', error);
+        res.status(500).json({ message: 'Error adding images' });
+    }
+});
 
 
 
